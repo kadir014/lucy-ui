@@ -1,2 +1,1 @@
-# lucy-ui
- Yet Another Pygame UI Library
+Yet another Pygame UI library that is heavily inspired by Qt
