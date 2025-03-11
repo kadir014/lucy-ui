@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+
 from enum import Enum
 from dataclasses import dataclass
 
@@ -11,19 +13,19 @@ class Size:
     width: float
     height: float
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[float]:
         yield self.width
         yield self.height
 
     def __getitem__(self, index: int) -> float:
         if index == 0: return self.width
         elif index == 1: return self.height
-        else: raise IndexError()
+        raise IndexError(f"Invalid index: {index}. Valid indices are 0 (width) and 1 (height).")
 
     def __setitem__(self, index: int, value: float) -> None:
         if index == 0: self.width = value
         elif index == 1: self.height = value
-        else: raise IndexError()
+        else: raise IndexError(f"Invalid index: {index}. Valid indices are 0 (width) and 1 (height).")
 
     def to_tuple(self) -> tuple[float, float]:
         """ Get tuple representation. """

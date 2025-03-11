@@ -1,3 +1,5 @@
+from typing import Optional
+
 import time
 
 import pygame
@@ -5,6 +7,7 @@ import pygame
 from .hook import Hook
 from .layout import Layout
 from .widget import Widget
+from .models import Size
 
 
 class TextInput(Widget):
@@ -20,7 +23,7 @@ class TextInput(Widget):
     def __init__(self,
             parent_layout: Layout,
             font: pygame.Font,
-            size: tuple[int, int] = (130, 40),
+            preferred_size: Optional[Size | tuple[float, float] | list[float, float]] = (130, 40),
             antialiasing: bool = True,
             placeholder: str = "",
             padding: int = 4
@@ -39,8 +42,6 @@ class TextInput(Widget):
         placeholder
             Text to show when the input area is empty.
         """
-        
-        super().__init__(parent_layout, size=size)
 
         self.text = ""
         self.placeholder = placeholder
@@ -72,11 +73,7 @@ class TextInput(Widget):
 
         self.enter_pressed = Hook()
 
-        self._padded_surf = pygame.Surface(
-            (self.size[0] - self.padding * 2, self.size[1] - self.padding * 2),
-            pygame.SRCALPHA
-        ).convert_alpha()
-        self.paint()
+        super().__init__(parent_layout, preferred_size=preferred_size)
 
     def _get_text_size(self) -> tuple[int, int]:
         text_surf = self.font.render(self.text, self.antialiasing, (0, 0, 0))
@@ -133,7 +130,7 @@ class TextInput(Widget):
             self._cursor_blink_last = now
 
             self._cursor_blink = not self._cursor_blink
-            self.paint() 
+            self.paint_event() 
 
         if not self.on_focus: return
 
@@ -184,12 +181,12 @@ class TextInput(Widget):
                     self.cursor_pos += 1
 
                     cursor_x = self._get_partial_text_size(self.cursor_pos)[0]
-                    input_width = self.size[0] - self.padding * 2
+                    input_width = self.current_size.width - self.padding * 2
 
                     if cursor_x - self._scroll > input_width:
                         self._scroll += cursor_x - self._scroll - input_width
 
-                self.paint()
+                self.paint_event()
 
             elif event.type == pygame.KEYDOWN:
                 if not (self._sel_on and not self._sel_done):
@@ -263,7 +260,7 @@ class TextInput(Widget):
 
                     # Paste clipboard
                     elif self.allow_pasting and event.key == pygame.K_v and event.mod == pygame.KMOD_LCTRL:
-                        clipboard = pygame.scrap.get_text()
+                        clipboard = pygame.scrap.get_text().replace("\n", "")
                         if len(clipboard) == 0: return
 
                         if self._sel_done:
@@ -309,7 +306,7 @@ class TextInput(Widget):
                             self.cursor_pos += len(clipboard)
 
                             cursor_x = self._get_partial_text_size(self.cursor_pos)[0]
-                            input_width = self.size[0] - self.padding * 2
+                            input_width = self.current_size.width - self.padding * 2
 
                             if cursor_x - self._scroll > input_width:
                                 self._scroll += cursor_x - self._scroll - input_width
@@ -376,7 +373,7 @@ class TextInput(Widget):
                                     self._sel_end = self.cursor_pos
 
                             cursor_x = self._get_partial_text_size(self.cursor_pos)[0]
-                            input_width = self.size[0] - self.padding * 2
+                            input_width = self.current_size.width - self.padding * 2
 
                             if cursor_x - self._scroll > input_width:
                                 self._scroll += cursor_x - self._scroll - input_width
@@ -412,12 +409,12 @@ class TextInput(Widget):
                         self.cursor_pos = len(self.text)
 
                         cursor_x = self._get_partial_text_size(self.cursor_pos)[0]
-                        input_width = self.size[0] - self.padding * 2
+                        input_width = self.current_size.width - self.padding * 2
 
                         if cursor_x - self._scroll > input_width:
                             self._scroll += cursor_x - self._scroll - input_width
 
-                    self.paint()
+                    self.paint_event()
 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_LSHIFT:
@@ -434,7 +431,7 @@ class TextInput(Widget):
                         self._sel_on = True
                         self._sel_done = False
                         self._sel_start = self.cursor_pos
-                        self.paint()
+                        self.paint_event()
 
             elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 if self._sel_start == self._sel_end:
@@ -442,7 +439,7 @@ class TextInput(Widget):
 
                 elif self._sel_on:
                     self._sel_done = True
-                    self.paint()
+                    self.paint_event()
 
         if self._sel_on and not self._sel_done:
             mx = pygame.mouse.get_pos()[0] - self.position.x
@@ -453,102 +450,15 @@ class TextInput(Widget):
                 self.cursor_pos = mi
                 self._sel_end = self.cursor_pos
 
-                self.paint()
+                self.paint_event()
 
-    def paint(self) -> None:
-        self._padded_surf.fill((0, 0, 0, 0))
-        self.surface.fill((0, 0, 0, 0))
+    def update_surface(self):
+        self._padded_surf = pygame.Surface(
+            (self.current_size.width - self.padding * 2, self.current_size.height - self.padding * 2),
+            pygame.SRCALPHA
+        ).convert_alpha()
 
-        # selection color is also inverted because of text
-        sel_color = (
-            255 - self.selection_color.r,
-            255 - self.selection_color.g,
-            255 - self.selection_color.b
-        )
-
-        # Draw selection
-        sel_rect = None
-
-        if (self._sel_on or self._ssel_on) and self._sel_start != -1 and self._sel_end != -1:
-            if self._sel_start > self._sel_end:
-                sel_start = self._sel_end
-                sel_end = self._sel_start
-            else:
-                sel_start = self._sel_start
-                sel_end = self._sel_end
-
-            sel_x = self._get_partial_text_size(sel_start)[0]
-            sel_w = self._get_partial_text_size(sel_end)[0] - sel_x
-
-            sel_rect = pygame.Rect(
-                sel_x + self.padding - self._scroll,
-                self.padding,
-                sel_w,
-                self.size[1] - self.padding * 2
-            )
-
-            pygame.draw.rect(
-                self.surface,
-                sel_color,
-                sel_rect
-            )
-
-        # Draw placeholder text
-        if len(self.text) == 0:
-            ph_surf = self.font.render(
-                self.placeholder,
-                self.antialiasing,
-                self.placeholder_color
-            )
-
-            height = ph_surf.get_height()
-
-            self.surface.blit(ph_surf, (self.padding, self.size[1] / 2 - height / 2))
-
-        # Draw text
-        else:
-            text_surf = self.font.render(self.text, self.antialiasing, self.text_color)
-            height = text_surf.get_height()
-
-            self._padded_surf.blit(
-                text_surf, (-self._scroll, self._padded_surf.get_height() / 2 - height / 2)
-            )
-
-            self.surface.blit(self._padded_surf, (self.padding, self.padding))
-
-            # Invert the selection area
-            if sel_rect is not None:
-                subsurf = pygame.Surface(sel_rect.size, pygame.SRCALPHA).convert_alpha()
-                subsurf.blit(self.surface, (-sel_rect.x, -sel_rect.y))
-                subsurf = pygame.transform.invert(subsurf)
-                self.surface.blit(subsurf, sel_rect)
-
-        # Draw cursor
-        if self.on_focus and not self._cursor_blink:
-            cursor_x = self._get_partial_text_size(self.cursor_pos)[0]
-
-            pygame.draw.line(
-                self.surface,
-                self.text_color,
-                (
-                    self.padding + cursor_x - self._scroll,
-                    self.padding
-                ),
-                (
-                    self.padding + cursor_x - self._scroll,
-                    self.size[1] - self.padding
-                ),
-                1
-            )
-
-        if self.on_focus:
-            border_color = self.hover_border_color
-        else:
-            border_color = self.border_color
-
-        pygame.draw.rect(
-            self.surface, border_color, (0, 0, self.size[0], self.size[1]), 1
-        )
+        super().update_surface()
 
     def unselect(self) -> None:
         """ Remove the text selection. """
@@ -587,17 +497,110 @@ class TextInput(Widget):
         if cursor_x < self._scroll:
             self._scroll -= self._scroll - cursor_x
 
-        self.paint()
-        self.padding
-        self.paint()
+        self.paint_event()
+
+    def paint_event(self) -> None:
+        self._padded_surf.fill((0, 0, 0, 0))
+        self.surface.fill((0, 0, 0, 0))
+
+        # selection color is also inverted because of text
+        sel_color = (
+            255 - self.selection_color.r,
+            255 - self.selection_color.g,
+            255 - self.selection_color.b
+        )
+
+        # Draw selection
+        sel_rect = None
+
+        if (self._sel_on or self._ssel_on) and self._sel_start != -1 and self._sel_end != -1:
+            if self._sel_start > self._sel_end:
+                sel_start = self._sel_end
+                sel_end = self._sel_start
+            else:
+                sel_start = self._sel_start
+                sel_end = self._sel_end
+
+            sel_x = self._get_partial_text_size(sel_start)[0]
+            sel_w = self._get_partial_text_size(sel_end)[0] - sel_x
+
+            sel_rect = pygame.Rect(
+                sel_x + self.padding - self._scroll,
+                self.padding,
+                sel_w,
+                self.current_size.height - self.padding * 2
+            )
+
+            pygame.draw.rect(
+                self.surface,
+                sel_color,
+                sel_rect
+            )
+
+        # Draw placeholder text
+        if len(self.text) == 0:
+            ph_surf = self.font.render(
+                self.placeholder,
+                self.antialiasing,
+                self.placeholder_color
+            )
+
+            height = ph_surf.get_height()
+
+            self.surface.blit(ph_surf, (self.padding, self.current_size.height / 2 - height / 2))
+
+        # Draw text
+        else:
+            text_surf = self.font.render(self.text, self.antialiasing, self.text_color)
+            height = text_surf.get_height()
+
+            self._padded_surf.blit(
+                text_surf, (-self._scroll, self._padded_surf.get_height() / 2 - height / 2)
+            )
+
+            self.surface.blit(self._padded_surf, (self.padding, self.padding))
+
+            # Invert the selection area
+            if sel_rect is not None:
+                subsurf = pygame.Surface(sel_rect.size, pygame.SRCALPHA).convert_alpha()
+                subsurf.blit(self.surface, (-sel_rect.x, -sel_rect.y))
+                subsurf = pygame.transform.invert(subsurf)
+                self.surface.blit(subsurf, sel_rect)
+
+        # Draw cursor
+        if self.on_focus and not self._cursor_blink:
+            cursor_x = self._get_partial_text_size(self.cursor_pos)[0]
+
+            pygame.draw.line(
+                self.surface,
+                self.text_color,
+                (
+                    self.padding + cursor_x - self._scroll,
+                    self.padding
+                ),
+                (
+                    self.padding + cursor_x - self._scroll,
+                    self.current_size.height - self.padding
+                ),
+                1
+            )
+
+        if self.on_focus:
+            border_color = self.hover_border_color
+        else:
+            border_color = self.border_color
+
+        pygame.draw.rect(
+            self.surface, border_color, (0, 0, self.current_size.width, self.current_size.height), 1
+        )
     
     def focus_event(self) -> None:
         self._reset_cursor_blink()
-        self.paint()
+        self.paint_event()
 
     def unfocus_event(self) -> None:
         self.unselect()
-        self.paint()
+        self.paint_event()
 
     def mouse_enter_event(self, position: pygame.Vector2) -> None:
         self._prev_cursor = pygame.mouse.get_cursor()

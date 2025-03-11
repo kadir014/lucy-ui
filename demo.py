@@ -1,7 +1,7 @@
 import pygame
 
-from src import VerticalStack, Widget
-from src.models import SizeBehavior, LayoutAlignment
+from src import VerticalStack, Widget, TextInput
+from src.models import Size, SizeBehavior, LayoutAlignment
 
 
 WINDOW_WIDTH = 600
@@ -16,6 +16,7 @@ clock = pygame.Clock()
 is_running = True
 
 font = pygame.Font("assets/FiraCode-Regular.ttf", 14)
+font = pygame.font.SysFont("Arial", 16)
 
 
 class PaintedWidget(Widget):
@@ -37,29 +38,34 @@ fixed_wgt = PaintedWidget(root_lyt0, (255, 0, 0), [w, 70])
 
 growing_wgt = PaintedWidget(root_lyt0, (0, 255, 0), [w, 115])
 growing_wgt.set_size_behavior(SizeBehavior.FIXED, SizeBehavior.GROW)
-growing_wgt.maximum_size[1] = 200
+growing_wgt.maximum_size.height = 200
 
 fixed_wgt2 = PaintedWidget(root_lyt0, (255, 0, 0), [w, 70])
 
-growing_wgt2 = PaintedWidget(root_lyt0, (0, 160, 255), [w, 0])
+#growing_wgt2 = PaintedWidget(root_lyt0, (0, 160, 255), [w, 0])
+growing_wgt2 = TextInput(root_lyt0, font, placeholder="Type here!", preferred_size=(w, 30))
 growing_wgt2.set_size_behavior(SizeBehavior.FIXED, SizeBehavior.GROW)
-growing_wgt2.maximum_size[1] = 30
+growing_wgt2.maximum_sizeheight = 150
 
 
 root_lyt1 = VerticalStack(None, [WINDOW_WIDTH, WINDOW_HEIGHT], (w, 0))
-root_lyt1.alignment = LayoutAlignment.BOTTOM
+root_lyt1.alignment = LayoutAlignment.TOP
 
 fixed_wgt = PaintedWidget(root_lyt1, (255, 0, 0), [w, 70])
 
 growing_wgt = PaintedWidget(root_lyt1, (0, 255, 0), [w, 115])
 growing_wgt.set_size_behavior(SizeBehavior.FIXED, SizeBehavior.GROW)
-growing_wgt.maximum_size[1] = 200
+growing_wgt.maximum_size.height = 200
 
 fixed_wgt2 = PaintedWidget(root_lyt1, (255, 0, 0), [w, 70])
 
-growing_wgt2 = PaintedWidget(root_lyt1, (0, 160, 255), [w, 0])
+growing_wgt2 = PaintedWidget(root_lyt1, (0, 160, 255), [w, 50])
 growing_wgt2.set_size_behavior(SizeBehavior.FIXED, SizeBehavior.GROW)
-growing_wgt2.maximum_size[1] = 30
+growing_wgt2.maximum_size.height = 90
+
+growing_wgt2 = PaintedWidget(root_lyt1, (0, 160, 255), [w, 40])
+growing_wgt2.set_size_behavior(SizeBehavior.FIXED, SizeBehavior.GROW)
+growing_wgt2.maximum_size.height = 0
 
 
 root_lyt2 = VerticalStack(None, [WINDOW_WIDTH, WINDOW_HEIGHT], (w*2, 0))
@@ -69,7 +75,7 @@ fixed_wgt = PaintedWidget(root_lyt2, (255, 0, 0), [w, 70])
 
 growing_wgt = PaintedWidget(root_lyt2, (0, 255, 0), [w, 115])
 growing_wgt.set_size_behavior(SizeBehavior.FIXED, SizeBehavior.GROW)
-growing_wgt.maximum_size[1] = 200
+growing_wgt.maximum_size.height = 200
 
 
 while is_running:
@@ -84,17 +90,17 @@ while is_running:
             if event.key == pygame.K_ESCAPE:
                 is_running = False
 
-        elif event.type == pygame.WINDOWRESIZED:
-            root_lyt0.size = [event.x, event.y]
-            root_lyt0.realign()
+        #elif event.type == pygame.WINDOWRESIZED:
+        #    root_lyt0.size = [event.x, event.y]
+        #    root_lyt0.realign()
 
     mouse = pygame.Vector2(*pygame.mouse.get_pos())
 
-    root_lyt0.size = [mouse.x, mouse.y]
+    root_lyt0.size = Size(mouse.x, mouse.y)
     root_lyt0.realign()
-    root_lyt1.size = [mouse.x, mouse.y]
+    root_lyt1.size = Size(mouse.x, mouse.y)
     root_lyt1.realign()
-    root_lyt2.size = [mouse.x, mouse.y]
+    root_lyt2.size = Size(mouse.x, mouse.y)
     root_lyt2.realign()
 
     window.fill((255, 255, 255))

@@ -2,6 +2,8 @@ from typing import Optional
 
 import pygame
 
+from .models import Size
+
 
 class Layout:
     """
@@ -13,8 +15,8 @@ class Layout:
 
     def __init__(self,
             parent_layout: "Layout" = None,
-            size: Optional[list[int, int]] = None,
-            position: Optional[pygame.Vector2 | tuple[float, float]] = (0, 0)
+            size: Optional[Size | tuple[float, float] | list[float, float]] = None,
+            position: Optional[pygame.Vector2 | tuple[float, float] | list[float, float]] = (0, 0)
             ) -> None:
         """
         Parameters
@@ -33,7 +35,7 @@ class Layout:
         self.parent_layout = parent_layout
         if self.parent_layout is not None: self.parent_layout.children.append(self)
 
-        self.size = size
+        self.size = Size(*size)
         self.relative_position = pygame.Vector2(position)
 
         self.children = []

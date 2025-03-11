@@ -17,7 +17,7 @@ class Widget:
 
     def __init__(self,
             parent_layout: Layout,
-            preferred_size: Optional[Size] = None
+            preferred_size: Optional[Size | tuple[float, float] | list[float, float]] = None
             ) -> None:
         """
         Parameters
@@ -28,20 +28,17 @@ class Widget:
             Preferred dimensions of the widget.
         """
 
-        self.parent_layout = parent_layout
-        self.parent_layout.children.append(self)
-
         self.relative_position = pygame.Vector2(0, 0)
 
-        if preferred_size is None: preferred_size = [50, 25]
+        # I chose 50x25 for default size, I don't know why
+        if preferred_size is None: preferred_size = Size(50, 25)
+        else: preferred_size = Size(*preferred_size)
         self.preferred_size = preferred_size
         self.current_size = Size(preferred_size.width, preferred_size.height)
         self.minimum_size = Size(0, 0)
         self.maximum_size = Size(0, 0)
         self.horizontal_behavior = SizeBehavior.FIXED
         self.vertical_behavior = SizeBehavior.FIXED
-
-        self.update_surface()
 
         # Mouse states
         self._hovered = False
@@ -51,6 +48,10 @@ class Widget:
         self.double_click_duration = 500
         self._last_pressed = 0
 
+        self.update_surface()
+
+        self.parent_layout = parent_layout
+        self.parent_layout.children.append(self)
         self.parent_layout.realign()
 
     @property
@@ -60,13 +61,23 @@ class Widget:
 
     @property
     def rect(self) -> pygame.Rect:
-        """ pygame.Rect object representing widget's geometry. """
-        return pygame.Rect(self.position, self.current_size)
+        """ pygame.Rect object representing widget's absolute geometry. """
+        return pygame.Rect(
+            self.position.x,
+            self.position.y,
+            self.current_size.width,
+            self.current_size.height
+        )
     
     @property
     def frect(self) -> pygame.FRect:
-        """ pygame.FRect object representing widget's geometry. """
-        return pygame.FRect(self.position, self.current_size)
+        """ pygame.FRect object representing widget's absolute geometry. """
+        return pygame.FRect(
+            self.position.x,
+            self.position.y,
+            self.current_size.width,
+            self.current_size.height
+        )
 
     def update(self, events: list[pygame.Event]) -> None:
         """
@@ -134,7 +145,7 @@ class Widget:
         This method is usually called internally by layout management.
         """
 
-        self.surface = pygame.Surface(self.current_size, pygame.SRCALPHA).convert_alpha()
+        self.surface = pygame.Surface(self.current_size.to_tuple(), pygame.SRCALPHA).convert_alpha()
         self.paint_event()
     
     def focus(self) -> None:
