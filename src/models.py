@@ -1,5 +1,34 @@
 from enum import Enum
+from dataclasses import dataclass
 
+
+@dataclass
+class Size:
+    """
+    A dataclass representing 2D dimensions.
+    """
+
+    width: float
+    height: float
+
+    def __iter__(self):
+        yield self.width
+        yield self.height
+
+    def __getitem__(self, index: int) -> float:
+        if index == 0: return self.width
+        elif index == 1: return self.height
+        else: raise IndexError()
+
+    def __setitem__(self, index: int, value: float) -> None:
+        if index == 0: self.width = value
+        elif index == 1: self.height = value
+        else: raise IndexError()
+
+    def to_tuple(self) -> tuple[float, float]:
+        """ Get tuple representation. """
+        return (self.width, self.height)
+    
 
 class SizeBehavior(Enum):
     """
@@ -38,9 +67,9 @@ class LayoutAlignment(Enum):
     RIGHT
         The widget is aligned starting from right in a horizontal layout.
     X_CENTER
-        The widget is centered along the X axis.
+        The widget is centered horizontally
     Y_CENTER
-        The widget is centered along the Y axis.
+        The widget is centered vertically.
     CENTER
         The widget is centered.
     """

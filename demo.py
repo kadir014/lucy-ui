@@ -1,7 +1,7 @@
 import pygame
 
 from src import VerticalStack, Widget
-from src.enums import SizeBehavior, LayoutAlignment
+from src.models import SizeBehavior, LayoutAlignment
 
 
 WINDOW_WIDTH = 600

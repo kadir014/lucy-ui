@@ -4,7 +4,7 @@ from time import time
 import pygame
 
 from .layout import Layout
-from .enums import SizeBehavior
+from .models import SizeBehavior, Size
 
 
 class Widget:
@@ -17,7 +17,7 @@ class Widget:
 
     def __init__(self,
             parent_layout: Layout,
-            preferred_size: Optional[list[int, int]] = None
+            preferred_size: Optional[Size] = None
             ) -> None:
         """
         Parameters
@@ -35,9 +35,9 @@ class Widget:
 
         if preferred_size is None: preferred_size = [50, 25]
         self.preferred_size = preferred_size
-        self.current_size = [*preferred_size]
-        self.minimum_size = [None, None]
-        self.maximum_size = [None, None]
+        self.current_size = Size(preferred_size.width, preferred_size.height)
+        self.minimum_size = Size(0, 0)
+        self.maximum_size = Size(0, 0)
         self.horizontal_behavior = SizeBehavior.FIXED
         self.vertical_behavior = SizeBehavior.FIXED
 

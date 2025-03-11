@@ -4,7 +4,7 @@ import pygame
 
 from .layout import Layout
 from .widget import Widget
-from .enums import SizeBehavior, LayoutAlignment
+from .models import SizeBehavior, LayoutAlignment
 
 
 class VerticalStack(Layout):
