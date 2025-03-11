@@ -4,10 +4,9 @@ import time
 
 import pygame
 
-from .hook import Hook
-from .layout import Layout
-from .widget import Widget
-from .models import Size
+from src.core import Hook, Size
+from src.layouts import Layout
+from src.widgets import Widget
 
 
 class TextInput(Widget):
@@ -35,12 +34,14 @@ class TextInput(Widget):
             The layout that this widget belongs to.
         font
             Font object to be used to render text.
-        size
-            Dimensions of the widget.
+        preferred_size
+            Preferred dimensions of the widget.
         antialiasing
             Whether to use anti-aliasing while rendering text.
         placeholder
             Text to show when the input area is empty.
+        padding
+            Padding space around the text content.
         """
 
         self.text = ""

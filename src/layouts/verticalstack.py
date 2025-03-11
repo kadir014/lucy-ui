@@ -2,9 +2,9 @@ from typing import Optional
 
 import pygame
 
-from .layout import Layout
-from .widget import Widget
-from .models import SizeBehavior, LayoutAlignment, Size
+from src.layouts import Layout
+from src.widgets import Widget
+from src.core import SizeBehavior, LayoutAlignment, Size
 
 
 class VerticalStack(Layout):

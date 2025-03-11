@@ -1,7 +1,8 @@
 import pygame
 
-from src import VerticalStack, Widget, TextInput
-from src.models import Size, SizeBehavior, LayoutAlignment
+from src.core import Size, SizeBehavior, LayoutAlignment
+from src.widgets import Widget, TextInput
+from src.layouts import VerticalStack
 
 
 WINDOW_WIDTH = 600

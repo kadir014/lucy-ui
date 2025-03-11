@@ -2,7 +2,7 @@ from typing import Optional
 
 import pygame
 
-from .models import Size
+from src.core import Size
 
 
 class Layout:

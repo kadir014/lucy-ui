@@ -3,8 +3,8 @@ from time import time
 
 import pygame
 
-from .layout import Layout
-from .models import SizeBehavior, Size
+from src.layouts import Layout
+from src.core import SizeBehavior, Size
 
 
 class Widget:
