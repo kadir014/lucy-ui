@@ -1,8 +1,9 @@
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import pygame
 
-from src.core import Size
+from src.core import Size, SizeBehavior
+from src.widgets import Widget
 
 
 class Layout:
@@ -14,16 +15,12 @@ class Layout:
     """
 
     def __init__(self,
-            parent_layout: "Layout" = None,
             size: Optional[Size | tuple[float, float] | list[float, float]] = None,
             position: Optional[pygame.Vector2 | tuple[float, float] | list[float, float]] = (0, 0)
             ) -> None:
         """
         Parameters
         ----------
-        parent_layout
-            The layout this layout belongs to.
-            Leave empty if this is the root layout.
         size
             Layout dimensions.
             Only needed if this layout is not handled by another layout.
@@ -32,8 +29,7 @@ class Layout:
             Only needed if this layout is not handled by another layout.
         """
 
-        self.parent_layout = parent_layout
-        if self.parent_layout is not None: self.parent_layout.children.append(self)
+        self.parent_layout: "Layout" = None
 
         self.size = Size(*size)
         self.relative_position = pygame.Vector2(position)
@@ -86,3 +82,25 @@ class Layout:
         """ Get absolute position in screen space. """
 
         return self.position + position
+    
+    def add_widget(self, widget: Widget) -> None:
+        """ Add a widget to the layout. """
+        self.children.append(widget)
+        widget.parent_layout = self
+        self.realign()
+
+    def remove_widget(self, widget: Widget) -> None:
+        """ Remove a widget from the layout. """
+        self.children.remove(widget)
+        widget.parent_layout = None
+        self.realign()
+
+    def add_stretcher(self) -> Widget:
+        """ Add a stretcher widget to the layout. """
+
+        stretcher = Widget((0, 0))
+        stretcher.size_behavior = (SizeBehavior.GROW, SizeBehavior.GROW)
+        stretcher.maximum_size = Size(0, 0)
+        self.add_widget(stretcher)
+
+        return stretcher

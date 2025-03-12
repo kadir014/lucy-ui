@@ -20,7 +20,6 @@ class TextInput(Widget):
     """
 
     def __init__(self,
-            parent_layout: Layout,
             font: pygame.Font,
             preferred_size: Optional[Size | tuple[float, float] | list[float, float]] = (130, 40),
             antialiasing: bool = True,
@@ -74,7 +73,7 @@ class TextInput(Widget):
 
         self.enter_pressed = Hook()
 
-        super().__init__(parent_layout, preferred_size=preferred_size)
+        super().__init__(preferred_size=preferred_size)
 
     def _get_text_size(self) -> tuple[int, int]:
         text_surf = self.font.render(self.text, self.antialiasing, (0, 0, 0))

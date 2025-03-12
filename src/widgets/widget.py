@@ -1,10 +1,12 @@
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from time import time
 
 import pygame
 
-from src.layouts import Layout
 from src.core import SizeBehavior, Size
+
+if TYPE_CHECKING:
+    from src.layouts import Layout
 
 
 class Widget:
@@ -16,14 +18,11 @@ class Widget:
     """
 
     def __init__(self,
-            parent_layout: Layout,
             preferred_size: Optional[Size | tuple[float, float] | list[float, float]] = None
             ) -> None:
         """
         Parameters
         ----------
-        parent_layout
-            The layout that this widget belongs to.
         preferred_size
             Preferred dimensions of the widget.
         """
@@ -37,8 +36,8 @@ class Widget:
         self.current_size = Size(preferred_size.width, preferred_size.height)
         self.minimum_size = Size(0, 0)
         self.maximum_size = Size(0, 0)
-        self.horizontal_behavior = SizeBehavior.FIXED
-        self.vertical_behavior = SizeBehavior.FIXED
+        self.__horizontal_behavior = SizeBehavior.FIXED
+        self.__vertical_behavior = SizeBehavior.FIXED
 
         # Mouse states
         self._hovered = False
@@ -48,11 +47,9 @@ class Widget:
         self.double_click_duration = 500
         self._last_pressed = 0
 
-        self.update_surface()
+        self.parent_layout: "Layout" = None
 
-        self.parent_layout = parent_layout
-        self.parent_layout.children.append(self)
-        self.parent_layout.realign()
+        self.update_surface()
 
     @property
     def position(self) -> pygame.Vector2:
@@ -61,6 +58,26 @@ class Widget:
 
     @property
     def rect(self) -> pygame.Rect:
+        """ pygame.Rect object representing widget's relative geometry. """
+        return pygame.Rect(
+            self.relative_position.x,
+            self.relative_position.y,
+            self.current_size.width,
+            self.current_size.height
+        )
+    
+    @property
+    def frect(self) -> pygame.FRect:
+        """ pygame.FRect object representing widget's relative geometry. """
+        return pygame.FRect(
+            self.relative_position.x,
+            self.relative_position.y,
+            self.current_size.width,
+            self.current_size.height
+        )
+    
+    @property
+    def absolute_rect(self) -> pygame.Rect:
         """ pygame.Rect object representing widget's absolute geometry. """
         return pygame.Rect(
             self.position.x,
@@ -70,7 +87,7 @@ class Widget:
         )
     
     @property
-    def frect(self) -> pygame.FRect:
+    def absolute_frect(self) -> pygame.FRect:
         """ pygame.FRect object representing widget's absolute geometry. """
         return pygame.FRect(
             self.position.x,
@@ -78,6 +95,43 @@ class Widget:
             self.current_size.width,
             self.current_size.height
         )
+    
+    @property
+    def size_behavior(self) -> tuple[SizeBehavior, SizeBehavior]:
+        """ Horizontal and vertical size behavior of the widget. """
+        return (self.__horizontal_behavior, self.__vertical_behavior)
+    
+    @size_behavior.setter
+    def size_behavior(self, value: tuple[SizeBehavior, SizeBehavior]) -> None:
+        self.__horizontal_behavior = value[0]
+        self.__vertical_behavior = value[1]
+        
+        if self.parent_layout is not None:
+            self.parent_layout.realign()
+
+    @property
+    def horizontal_behavior(self) -> SizeBehavior:
+        """ Horizontal size behavior of the widget. """
+        return self.__horizontal_behavior
+    
+    @horizontal_behavior.setter
+    def horizontal_behavior(self, value: SizeBehavior) -> None:
+        self.__horizontal_behavior = value
+        
+        if self.parent_layout is not None:
+            self.parent_layout.realign()
+
+    @property
+    def vertical_behavior(self) -> SizeBehavior:
+        """ Vertical size behavior of the widget. """
+        return self.__vertical_behavior
+    
+    @vertical_behavior.setter
+    def vertical_behavior(self, value: SizeBehavior) -> None:
+        self.__vertical_behavior = value
+        
+        if self.parent_layout is not None:
+            self.parent_layout.realign()
 
     def update(self, events: list[pygame.Event]) -> None:
         """
@@ -163,24 +217,6 @@ class Widget:
             self.on_focus = False
             self.unfocus_event()
         else: self.on_focus = False
-
-    def set_size_behavior(self,
-            horizontal_behavior: SizeBehavior,
-            vertical_behavior: SizeBehavior
-            ) -> None:
-        """
-        Set the size behavior of the widget.
-
-        Parameters
-        ----------
-        horizontal_behavior
-            Size behavior for widget's width
-        vertical_behavior
-            Size behavior for widget's height
-        """
-        self.horizontal_behavior = horizontal_behavior
-        self.vertical_behavior = vertical_behavior
-        self.parent_layout.realign()
 
     def paint_event(self) -> None:
         """

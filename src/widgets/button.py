@@ -21,7 +21,6 @@ class Button(Widget):
         Emitted when the button is released.
     """
     def __init__(self,
-            parent_layout: Layout,
             font: pygame.Font,
             preferred_size: Optional[Size | tuple[float, float] | list[float, float]] = (130, 40),
             text: str = "",
@@ -49,7 +48,7 @@ class Button(Widget):
         self.pressed = Hook()
         self.released = Hook()
 
-        super().__init__(parent_layout, preferred_size=preferred_size)
+        super().__init__(preferred_size=preferred_size)
 
     def paint_event(self) -> None:
         self.surface.fill((0, 0, 0, 0))

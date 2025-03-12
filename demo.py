@@ -27,20 +27,19 @@ class PaintedWidget(Widget):
     """
 
     def __init__(self,
-            parent_layout: Layout,
             color: tuple[int, int, int],
             preferred_size: Optional[Size | tuple[float, float] | list[float, float]] = None
             ) -> None:
         self.color = color
-        super().__init__(parent_layout, preferred_size=preferred_size)
+        super().__init__(preferred_size=preferred_size)
 
     def paint_event(self):
         self.surface.fill(self.color)
 
         padding = 5
         rect = self.rect
-        rect.x += padding
-        rect.y += padding
+        rect.x = padding
+        rect.y = padding
         rect.width -= padding * 2
         rect.height -= padding * 2
 
@@ -49,51 +48,47 @@ class PaintedWidget(Widget):
 
 w = 200
 
-root_lyt0 = VerticalStack(None, [WINDOW_WIDTH, WINDOW_HEIGHT], (0, 0))
-root_lyt0.alignment = LayoutAlignment.TOP
+# root_lyt0 = VerticalStack(None, [WINDOW_WIDTH, WINDOW_HEIGHT], (0, 0))
+# root_lyt0.alignment = LayoutAlignment.TOP
 
-fixed_wgt = PaintedWidget(root_lyt0, (255, 0, 0), [w, 70])
+# fixed_wgt = PaintedWidget((255, 0, 0), [w, 70])
+# root_lyt0.add_widget(fixed_wgt)
 
-growing_wgt = PaintedWidget(root_lyt0, (0, 255, 0), [w, 115])
-growing_wgt.set_size_behavior(SizeBehavior.FIXED, SizeBehavior.GROW)
-growing_wgt.maximum_size.height = 200
+# growing_wgt = PaintedWidget((0, 255, 0), [w, 115])
+# growing_wgt.set_size_behavior(SizeBehavior.FIXED, SizeBehavior.GROW)
+# growing_wgt.maximum_size.height = 200
+# root_lyt0.add_widget(growing_wgt)
 
-fixed_wgt2 = PaintedWidget(root_lyt0, (255, 0, 0), [w, 70])
+# fixed_wgt2 = PaintedWidget(root_lyt0, (255, 0, 0), [w, 70])
 
-#growing_wgt2 = PaintedWidget(root_lyt0, (0, 160, 255), [w, 0])
-growing_wgt2 = TextInput(root_lyt0, font, placeholder="Type here!", preferred_size=(w, 30))
-growing_wgt2.set_size_behavior(SizeBehavior.FIXED, SizeBehavior.GROW)
-growing_wgt2.maximum_sizeheight = 150
+# #growing_wgt2 = PaintedWidget(root_lyt0, (0, 160, 255), [w, 0])
+# growing_wgt2 = TextInput(root_lyt0, font, placeholder="Type here!", preferred_size=(w, 30))
+# growing_wgt2.set_size_behavior(SizeBehavior.FIXED, SizeBehavior.GROW)
+# growing_wgt2.maximum_size.height = 150
 
 
-root_lyt1 = VerticalStack(None, [WINDOW_WIDTH, WINDOW_HEIGHT], (w, 0))
+root_lyt1 = VerticalStack((WINDOW_WIDTH, WINDOW_HEIGHT), (w, 0))
 root_lyt1.alignment = LayoutAlignment.TOP
 
-fixed_wgt = PaintedWidget(root_lyt1, (255, 0, 0), [w, 70])
+#root_lyt1.add_stretcher()
 
-growing_wgt = PaintedWidget(root_lyt1, (0, 255, 0), [w, 115])
-growing_wgt.set_size_behavior(SizeBehavior.FIXED, SizeBehavior.GROW)
+fixed_wgt = PaintedWidget((255, 0, 0), (w, 70))
+root_lyt1.add_widget(fixed_wgt)
+
+growing_wgt = PaintedWidget((0, 255, 0), (w, 115))
+growing_wgt.size_behavior = (SizeBehavior.FIXED, SizeBehavior.GROW)
 growing_wgt.maximum_size.height = 200
+root_lyt1.add_widget(growing_wgt)
 
-fixed_wgt2 = PaintedWidget(root_lyt1, (255, 0, 0), [w, 70])
+fixed_wgt2 = PaintedWidget((255, 0, 0), (w, 70))
+root_lyt1.add_widget(fixed_wgt2)
 
-growing_wgt2 = PaintedWidget(root_lyt1, (0, 160, 255), [w, 50])
-growing_wgt2.set_size_behavior(SizeBehavior.FIXED, SizeBehavior.GROW)
-growing_wgt2.maximum_size.height = 90
+root_lyt1.add_stretcher()
 
-growing_wgt2 = PaintedWidget(root_lyt1, (0, 160, 255), [w, 40])
-growing_wgt2.set_size_behavior(SizeBehavior.FIXED, SizeBehavior.GROW)
-growing_wgt2.maximum_size.height = 0
-
-
-root_lyt2 = VerticalStack(None, [WINDOW_WIDTH, WINDOW_HEIGHT], (w*2, 0))
-root_lyt2.alignment = LayoutAlignment.X_CENTER
-
-fixed_wgt = PaintedWidget(root_lyt2, (255, 0, 0), [w, 70])
-
-growing_wgt = PaintedWidget(root_lyt2, (0, 255, 0), [w, 115])
-growing_wgt.set_size_behavior(SizeBehavior.FIXED, SizeBehavior.GROW)
-growing_wgt.maximum_size.height = 200
+growing_wgt2 = PaintedWidget((0, 160, 255), (w, 40))
+growing_wgt2.size_behavior = (SizeBehavior.FIXED, SizeBehavior.GROW)
+growing_wgt2.maximum_size.height = 100
+root_lyt1.add_widget(growing_wgt2)
 
 
 while is_running:
@@ -108,23 +103,23 @@ while is_running:
             if event.key == pygame.K_ESCAPE:
                 is_running = False
 
+        elif event.type == pygame.WINDOWRESIZED:
+            root_lyt1.size = Size(event.x, event.y)
+            root_lyt1.realign()
+
     mouse = pygame.Vector2(*pygame.mouse.get_pos())
 
-    root_lyt0.size = Size(mouse.x, mouse.y)
-    root_lyt0.realign()
-    root_lyt1.size = Size(mouse.x, mouse.y)
-    root_lyt1.realign()
-    root_lyt2.size = Size(mouse.x, mouse.y)
-    root_lyt2.realign()
+    #root_lyt0.size = Size(mouse.x, mouse.y)
+    #root_lyt0.realign()
+    #root_lyt1.size = Size(mouse.x, mouse.y)
+    #root_lyt1.realign()
 
     window.fill((255, 255, 255))
 
-    root_lyt0.update(events)
-    root_lyt0.render(window)
+    #root_lyt0.update(events)
+    #root_lyt0.render(window)
     root_lyt1.update(events)
     root_lyt1.render(window)
-    root_lyt2.update(events)
-    root_lyt2.render(window)
 
     pygame.display.flip()
 

@@ -15,15 +15,15 @@ class VerticalStack(Layout):
     """
 
     def __init__(self,
-            parent_layout: Layout = None,
             size: Optional[Size | tuple[float, float] | list[float, float]] = None,
             position: Optional[pygame.Vector2 | tuple[int, int]] = None,
             alignment: LayoutAlignment = LayoutAlignment.TOP
             ) -> None:
-        super().__init__(parent_layout=parent_layout, size=size, position=position)
+        super().__init__(size=size, position=position)
         self.alignment = alignment
 
     def realign(self) -> None:
+        # Calculate the fixed amount of area and also gather growable widgets
         h_fixed = 0
         growables: list[Widget] = []
         for child in self.children:
@@ -33,7 +33,6 @@ class VerticalStack(Layout):
 
                 elif child.vertical_behavior == SizeBehavior.GROW:
                     h_fixed += child.preferred_size.height
-                    #child.current_size.height = child.preferred_size.height
                     growables.append(child)
 
         n_growables = len(growables)
@@ -116,8 +115,10 @@ class VerticalStack(Layout):
                     y += child.current_size.height
 
         elif self.alignment == LayoutAlignment.X_CENTER:
-            gap = remaining_space / (len(self.children) - 1)
+            gap = remaining_space / (len(self.children) + 1)
             if remaining_space <= 0: gap = 0
+
+            y = gap
 
             for i, child in enumerate(self.children):
                 if isinstance(child, Widget):
