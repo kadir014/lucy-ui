@@ -1,8 +1,10 @@
+from typing import Optional
+
 import pygame
 
 from src.core import Size, SizeBehavior, LayoutAlignment
 from src.widgets import Widget, TextInput
-from src.layouts import VerticalStack
+from src.layouts import VerticalStack, Layout
 
 
 WINDOW_WIDTH = 600
@@ -17,18 +19,33 @@ clock = pygame.Clock()
 is_running = True
 
 font = pygame.Font("assets/FiraCode-Regular.ttf", 14)
-font = pygame.font.SysFont("Arial", 16)
 
 
 class PaintedWidget(Widget):
-    def __init__(self, parent_layout, color, preferred_size = None):
-        self.color = color
+    """
+    A custom widget with a colored background.
+    """
 
-        super().__init__(parent_layout, preferred_size)
+    def __init__(self,
+            parent_layout: Layout,
+            color: tuple[int, int, int],
+            preferred_size: Optional[Size | tuple[float, float] | list[float, float]] = None
+            ) -> None:
+        self.color = color
+        super().__init__(parent_layout, preferred_size=preferred_size)
 
     def paint_event(self):
         self.surface.fill(self.color)
-        pygame.draw.rect(self.surface, (0, 0, 0), ((5, 5), (self.current_size[0]-10, self.current_size[1]-10)), 2)
+
+        padding = 5
+        rect = self.rect
+        rect.x += padding
+        rect.y += padding
+        rect.width -= padding * 2
+        rect.height -= padding * 2
+
+        pygame.draw.rect(self.surface, (0, 0, 0), rect, 2)
+
 
 w = 200
 
@@ -91,10 +108,6 @@ while is_running:
             if event.key == pygame.K_ESCAPE:
                 is_running = False
 
-        #elif event.type == pygame.WINDOWRESIZED:
-        #    root_lyt0.size = [event.x, event.y]
-        #    root_lyt0.realign()
-
     mouse = pygame.Vector2(*pygame.mouse.get_pos())
 
     root_lyt0.size = Size(mouse.x, mouse.y)
@@ -105,8 +118,6 @@ while is_running:
     root_lyt2.realign()
 
     window.fill((255, 255, 255))
-
-    #pygame.draw.rect(window, (243, 243, 243), ((root_lyt.position, root_lyt.size)))
 
     root_lyt0.update(events)
     root_lyt0.render(window)
