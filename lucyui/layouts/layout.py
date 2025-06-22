@@ -1,9 +1,10 @@
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 import pygame
 
-from src.core import Size, SizeBehavior
-from src.widgets import Widget
+from lucyui.core.types import SizeLike
+from lucyui.core import Size, SizeBehavior
+from lucyui.widgets import Widget
 
 
 class Layout:
@@ -15,7 +16,7 @@ class Layout:
     """
 
     def __init__(self,
-            size: Optional[Size | tuple[float, float] | list[float, float]] = None,
+            size: Optional[SizeLike] = None,
             position: Optional[pygame.Vector2 | tuple[float, float] | list[float, float]] = (0, 0)
             ) -> None:
         """
@@ -35,6 +36,8 @@ class Layout:
         self.relative_position = pygame.Vector2(position)
 
         self.children = []
+
+        self.__need_realign = False
 
     @property
     def position(self) -> pygame.Vector2:
@@ -56,6 +59,10 @@ class Layout:
             Event list returned by the `pygame.event.get()`
         """
 
+        if self.__need_realign:
+            self._realign()
+            self.__need_realign = False
+
         for child in self.children:
             child.update(events)
 
@@ -75,8 +82,16 @@ class Layout:
             child.render(surface)
 
     def realign(self) -> None:
-        """ Realign widgets. """
-        raise NotImplementedError
+        """ Request a realign. """
+        self.__need_realign = True
+
+    def _realign(self) -> None:
+        """
+        Realign wigets.
+        
+        This method can be implemented in a subclass to
+        create a custom layout distribution.
+        """
 
     def get_absolute_position(self, position: pygame.Vector2) -> pygame.Vector2:
         """ Get absolute position in screen space. """

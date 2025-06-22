@@ -1,1 +1,2 @@
-Yet another Pygame UI library that is heavily inspired by Qt
+# lucy-ui
+A Pygame User Interface and Layout Management Library.

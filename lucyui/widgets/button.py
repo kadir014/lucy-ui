@@ -2,9 +2,9 @@ from typing import Optional
 
 import pygame
 
-from src.core import Hook, Size
-from src.layouts import Layout
-from src.widgets import Widget
+from lucyui.core import Hook, Size
+from lucyui.core.types import SizeLike
+from lucyui.widgets import Widget
 
 
 class Button(Widget):
@@ -22,7 +22,7 @@ class Button(Widget):
     """
     def __init__(self,
             font: pygame.Font,
-            preferred_size: Optional[Size | tuple[float, float] | list[float, float]] = (130, 40),
+            preferred_size: Optional[SizeLike] = (130, 40),
             text: str = "",
             antialiasing: bool = True
             ) -> None:
@@ -53,7 +53,7 @@ class Button(Widget):
     def paint_event(self) -> None:
         self.surface.fill((0, 0, 0, 0))
 
-        pygame.draw.rect(self.surface, (0, 0, 0), (0, 0, self.size[0], self.size[1]), 1)
+        pygame.draw.rect(self.surface, (0, 0, 0), (0, 0, self.current_size[0], self.current_size[1]), 1)
         textsurf = self.font.render(self.text, self.antialiasing, (0, 0, 0))
         surfrect = self.surface.get_rect()
         textrect = textsurf.get_rect()

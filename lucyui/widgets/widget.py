@@ -1,12 +1,23 @@
+"""
+
+    lucy-ui  -  Pygame Layout & UI Library
+
+    This file is a part of the lucy-ui
+    project and distributed under MIT license.
+    https://github.com/kadir014/lucy-ui
+
+"""
+
 from typing import TYPE_CHECKING, Optional
 from time import time
 
 import pygame
 
-from src.core import SizeBehavior, Size
+from lucyui.core import SizeBehavior, Size
+from lucyui.core.types import SizeLike
 
 if TYPE_CHECKING:
-    from src.layouts import Layout
+    from lucyui.layouts import Layout
 
 
 class Widget:
@@ -18,7 +29,7 @@ class Widget:
     """
 
     def __init__(self,
-            preferred_size: Optional[Size | tuple[float, float] | list[float, float]] = None
+            preferred_size: Optional[SizeLike] = None
             ) -> None:
         """
         Parameters
@@ -29,19 +40,18 @@ class Widget:
 
         self.relative_position = pygame.Vector2(0, 0)
 
-        # I chose 50x25 for default size, I don't know why
-        if preferred_size is None: preferred_size = Size(50, 25)
+        if preferred_size is None: preferred_size = Size(10, 10)
         else: preferred_size = Size(*preferred_size)
         self.preferred_size = preferred_size
-        self.current_size = Size(preferred_size.width, preferred_size.height)
+        self.current_size = Size(*preferred_size)
         self.minimum_size = Size(0, 0)
         self.maximum_size = Size(0, 0)
         self.__horizontal_behavior = SizeBehavior.FIXED
         self.__vertical_behavior = SizeBehavior.FIXED
 
-        # Mouse states
         self._hovered = False
         self._pressed = False
+
         self.on_focus = False
 
         self.double_click_duration = 500
@@ -190,7 +200,8 @@ class Widget:
             Surface to render the widget onto.
         """
 
-        surface.blit(self.surface, self.position)
+        if self.surface is not None:
+            surface.blit(self.surface, self.position)
 
     def update_surface(self) -> None:
         """
@@ -199,6 +210,10 @@ class Widget:
         This method is usually called internally by layout management.
         """
 
+        if not self.current_size.is_valid():
+            self.surface = None
+            return
+        
         self.surface = pygame.Surface(self.current_size.to_tuple(), pygame.SRCALPHA).convert_alpha()
         self.paint_event()
     
@@ -220,7 +235,7 @@ class Widget:
 
     def paint_event(self) -> None:
         """
-        This event can be implemented in a subclass to repaint he widget surface.
+        This event can be implemented in a subclass to repaint the widget surface.
         """
     
     def focus_event(self) -> None:

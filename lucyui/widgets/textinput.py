@@ -4,9 +4,9 @@ import time
 
 import pygame
 
-from src.core import Hook, Size
-from src.layouts import Layout
-from src.widgets import Widget
+from lucyui.core import Hook, Size
+from lucyui.core.types import SizeLike
+from lucyui.widgets import Widget
 
 
 class TextInput(Widget):
@@ -21,7 +21,7 @@ class TextInput(Widget):
 
     def __init__(self,
             font: pygame.Font,
-            preferred_size: Optional[Size | tuple[float, float] | list[float, float]] = (130, 40),
+            preferred_size: Optional[SizeLike] = (130, 40),
             antialiasing: bool = True,
             placeholder: str = "",
             padding: int = 4
@@ -453,10 +453,19 @@ class TextInput(Widget):
                 self.paint_event()
 
     def update_surface(self):
-        self._padded_surf = pygame.Surface(
-            (self.current_size.width - self.padding * 2, self.current_size.height - self.padding * 2),
-            pygame.SRCALPHA
-        ).convert_alpha()
+        padded_size = Size(
+            self.current_size.width - self.padding * 2,
+            self.current_size.height - self.padding * 2
+        )
+
+        if padded_size.is_valid():
+            self._padded_surf = pygame.Surface(
+                (self.current_size.width - self.padding * 2, self.current_size.height - self.padding * 2),
+                pygame.SRCALPHA
+            ).convert_alpha()
+
+        else:
+            self._padded_surf = None
 
         super().update_surface()
 
@@ -500,6 +509,9 @@ class TextInput(Widget):
         self.paint_event()
 
     def paint_event(self) -> None:
+        if not self.current_size.is_valid(): return
+        if self._padded_surf is None: return
+
         self._padded_surf.fill((0, 0, 0, 0))
         self.surface.fill((0, 0, 0, 0))
 

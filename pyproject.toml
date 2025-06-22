@@ -1,0 +1,23 @@
+[project]
+name = "lucy-ui"
+description = "A Pygame User Interface and Layout Management Library"
+version = "0.0.2"
+readme = "README.md"
+authors = [
+    {name="Kadir Aksoy"},
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Topic :: Games/Entertainment",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries :: pygame",
+]
+dependencies = [
+    "pygame-ce",
+]
+requires-python = ">=3.10"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
