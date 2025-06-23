@@ -1,7 +1,7 @@
 [project]
-name = "lucy-ui"
-description = "A Pygame User Interface and Layout Management Library"
-version = "0.0.2"
+name = "lucyui"
+description = "User Interface and Layout Management Library for Pygame"
+version = "0.0.3"
 readme = "README.md"
 authors = [
     {name="Kadir Aksoy"},
@@ -17,6 +17,10 @@ dependencies = [
     "pygame-ce",
 ]
 requires-python = ">=3.10"
+
+[project.urls]
+homepage = "https://github.com/kadir014/lucy-ui"
+bugtracker = "https://github.com/kadir014/lucy-ui/issues"
 
 [build-system]
 requires = ["setuptools"]

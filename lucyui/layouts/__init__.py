@@ -9,4 +9,4 @@
 """
 
 from lucyui.layouts.layout import Layout
-from lucyui.layouts.verticalstack import VerticalStack
+from lucyui.layouts.stack import Stack

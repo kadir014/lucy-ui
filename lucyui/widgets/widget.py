@@ -9,18 +9,19 @@
 """
 
 from typing import TYPE_CHECKING, Optional
-from time import time
+from time import perf_counter
 
 import pygame
 
 from lucyui.core import SizeBehavior, Size
+from lucyui.core.models import ConstrainedBoxModel
 from lucyui.core.types import SizeLike
 
 if TYPE_CHECKING:
     from lucyui.layouts import Layout
 
 
-class Widget:
+class Widget(ConstrainedBoxModel):
     """
     Base user interface element.
 
@@ -29,23 +30,26 @@ class Widget:
     """
 
     def __init__(self,
-            preferred_size: Optional[SizeLike] = None
+            preferred_size: Optional[SizeLike] = None,
+            double_click_duration: float = 500.0
             ) -> None:
         """
         Parameters
         ----------
         preferred_size
             Preferred dimensions of the widget.
+        double_click_duration
+            Delay needed for a double click to register in milliseconds.
         """
-
-        self.relative_position = pygame.Vector2(0, 0)
 
         if preferred_size is None: preferred_size = Size(10, 10)
         else: preferred_size = Size(*preferred_size)
-        self.preferred_size = preferred_size
-        self.current_size = Size(*preferred_size)
-        self.minimum_size = Size(0, 0)
-        self.maximum_size = Size(0, 0)
+
+        super().__init__(
+            preferred_size,
+            pygame.Vector2(0, 0)
+        )
+
         self.__horizontal_behavior = SizeBehavior.FIXED
         self.__vertical_behavior = SizeBehavior.FIXED
 
@@ -54,7 +58,7 @@ class Widget:
 
         self.on_focus = False
 
-        self.double_click_duration = 500
+        self.double_click_duration = double_click_duration
         self._last_pressed = 0
 
         self.parent_layout: "Layout" = None
@@ -65,26 +69,6 @@ class Widget:
     def position(self) -> pygame.Vector2:
         """ Widget's absolute position. """
         return self.parent_layout.get_absolute_position(self.relative_position)
-
-    @property
-    def rect(self) -> pygame.Rect:
-        """ pygame.Rect object representing widget's relative geometry. """
-        return pygame.Rect(
-            self.relative_position.x,
-            self.relative_position.y,
-            self.current_size.width,
-            self.current_size.height
-        )
-    
-    @property
-    def frect(self) -> pygame.FRect:
-        """ pygame.FRect object representing widget's relative geometry. """
-        return pygame.FRect(
-            self.relative_position.x,
-            self.relative_position.y,
-            self.current_size.width,
-            self.current_size.height
-        )
     
     @property
     def absolute_rect(self) -> pygame.Rect:
@@ -158,7 +142,7 @@ class Widget:
 
         mouse = pygame.Vector2(*pygame.mouse.get_pos())
 
-        if self.rect.collidepoint(mouse.x, mouse.y):
+        if self.absolute_frect.collidepoint(mouse.x, mouse.y):
             if not self._hovered: self.mouse_enter_event(mouse)
             self._hovered = True
         else:
@@ -167,14 +151,14 @@ class Widget:
 
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if (time() - self._last_pressed) * 1000 < self.double_click_duration:
+                if (perf_counter() - self._last_pressed) * 1000 < self.double_click_duration:
                     self._last_pressed = 0
                     self.mouse_double_click_event(pygame.Vector2(*event.pos))
                     
                 if event.button == 1:
                     if self._hovered:
                         self._pressed = True
-                        self._last_pressed = time()
+                        self._last_pressed = perf_counter()
                         self.mouse_press_event(pygame.Vector2(*event.pos))
 
                     else:

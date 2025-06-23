@@ -7,8 +7,13 @@
     https://github.com/kadir014/lucy-ui
 
 """
+from collections.abc import Sequence
+
+import pygame
 
 from lucyui.core import Size
 
 
-SizeLike = Size | tuple[float, float] | list[float, float]
+SizeLike = Size | tuple[float, float] | Sequence[float]
+
+Coordinate = pygame.Vector2 | tuple[float, float] | Sequence[float]

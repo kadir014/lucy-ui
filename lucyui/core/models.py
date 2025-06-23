@@ -13,6 +13,54 @@ from collections.abc import Iterator
 from enum import Enum, auto
 from dataclasses import dataclass
 
+import pygame
+
+
+class ConstrainedBoxModel:
+    """
+    This class is the smallest building block for a UI element, describing a
+    transformable and constrainable box geometry.
+    """
+
+    def __init__(self,
+            preferred_size: "Size",
+            relative_position: pygame.Vector2,
+            ) -> None:
+        """
+        Parameters
+        ----------
+        preferred_size
+            Preferred size of the box model.
+        relative_position
+            Position of the box model relative to world or its parent.
+        """
+        self.preferred_size = preferred_size
+        self.current_size = self.preferred_size.copy()
+        
+        self.relative_position = relative_position
+
+        self.maximum_size = Size(0, 0)
+        self.minimum_size = Size(0, 0)
+
+    @property
+    def rect(self) -> pygame.Rect:
+        """ pygame.Rect object representing relative geometry. """
+        return pygame.Rect(
+            self.relative_position.x,
+            self.relative_position.y,
+            self.current_size.width,
+            self.current_size.height
+        )
+    
+    @property
+    def frect(self) -> pygame.FRect:
+        """ pygame.FRect object representing relative geometry. """
+        return pygame.FRect(
+            self.relative_position.x,
+            self.relative_position.y,
+            self.current_size.width,
+            self.current_size.height
+        )
 
 @dataclass
 class Size:
@@ -37,6 +85,10 @@ class Size:
         elif index == 1: self.height = value
         else: raise IndexError(f"Invalid index: {index}. Valid indices are 0 (width) and 1 (height).")
 
+    def copy(self) -> "Size":
+        """ Get a copy of size. """
+        return Size(*self)
+
     def to_tuple(self) -> tuple[float, float]:
         """ Get tuple representation. """
         return (self.width, self.height)
@@ -60,7 +112,7 @@ class SizeBehavior(Enum):
     SHRINK
         The widget can shrink below its preferred size if necessary, but not grow beyond it.
         The widget cannot shrink below its minimum size if above 0.
-    FLEXIBLE
+    FLEX
         The widget can either grow or shrink outside its preferred size if necessary.
         The widget cannot go outside its maximum and minimum sizes if above 0.
     """
@@ -68,7 +120,7 @@ class SizeBehavior(Enum):
     FIXED = auto()
     GROW = auto()
     SHRINK = auto()
-    FLEXIBLE = auto()
+    FLEX = auto()
 
 
 class LayoutAlignment(Enum):
@@ -106,3 +158,19 @@ class LayoutDistribution(Enum):
 
     SPACE_BETWEEN = auto()
     SPACE_AROUND = auto()
+
+
+class StackDirection(Enum):
+    """
+    Stack layout main axis direction.
+
+    Fields
+    ------
+    HORIZONTAL
+        Main axis is horizontal (on X).
+    VERTICAL
+        Main axis is vertical (on Y).
+    """
+
+    HORIZONTAL = 0
+    VERTICAL = 1

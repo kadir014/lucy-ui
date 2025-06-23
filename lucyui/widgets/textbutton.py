@@ -12,14 +12,13 @@ from typing import Optional
 
 import pygame
 
-from lucyui.core import Hook
 from lucyui.core.types import SizeLike
-from lucyui.widgets import Widget
+from lucyui.widgets.abstractbutton import AbstractButton
 
 
-class Button(Widget):
+class TextButton(AbstractButton):
     """
-    Basic push button widget.
+    Basic push button widget with text.
 
     Hooks
     -----
@@ -39,8 +38,6 @@ class Button(Widget):
         """
         Parameters
         ----------
-        parent_layout
-            The layout that this widget belongs to.
         font
             Font object to be used to render text.
         preferred_size
@@ -54,16 +51,12 @@ class Button(Widget):
         self.text = text
         self.antialiasing = antialiasing
 
-        self.clicked = Hook()
-        self.pressed = Hook()
-        self.released = Hook()
-
         super().__init__(preferred_size=preferred_size)
 
     def paint_event(self) -> None:
         self.surface.fill((0, 0, 0, 0))
 
-        pygame.draw.rect(self.surface, (0, 0, 0), (0, 0, self.current_size[0], self.current_size[1]), 1)
+        pygame.draw.rect(self.surface, (0, 0, 0), (0, 0, self.current_size.width, self.current_size.height), 1)
         textsurf = self.font.render(self.text, self.antialiasing, (0, 0, 0))
         surfrect = self.surface.get_rect()
         textrect = textsurf.get_rect()
@@ -73,10 +66,3 @@ class Button(Widget):
                 surfrect.centery - textrect.centery
             )
         )
-
-    def mouse_press_event(self, position: pygame.Vector2) -> None:
-        self.pressed.emit()
-
-    def mouse_release_event(self, position: pygame.Vector2) -> None:
-        self.released.emit()
-        self.clicked.emit()

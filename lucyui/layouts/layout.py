@@ -12,12 +12,13 @@ from typing import Optional
 
 import pygame
 
-from lucyui.core.types import SizeLike
+from lucyui.core.types import SizeLike, Coordinate
 from lucyui.core import Size, SizeBehavior
+from lucyui.core.models import ConstrainedBoxModel
 from lucyui.widgets import Widget
 
 
-class Layout:
+class Layout(ConstrainedBoxModel):
     """
     Base layout class.
 
@@ -26,28 +27,34 @@ class Layout:
     """
 
     def __init__(self,
-            size: Optional[SizeLike] = None,
-            position: Optional[pygame.Vector2 | tuple[float, float] | list[float, float]] = (0, 0)
+            preferred_size: Optional[SizeLike] = None,
+            relative_position: Coordinate = (0, 0)
             ) -> None:
         """
         Parameters
         ----------
-        size
-            Layout dimensions.
+        preferred_size
+            Preferred layout dimensions.
             Only needed if this layout is not handled by another layout.
-        position
-            Layout position.
+        relative_position
+            Layout position relative to world.
             Only needed if this layout is not handled by another layout.
         """
 
+        if preferred_size is None: preferred_size = Size(10, 10)
+        else: preferred_size = Size(*preferred_size)
+        
+        super().__init__(preferred_size, pygame.Vector2(relative_position))
+
+        self.__horizontal_behavior = SizeBehavior.FLEX
+        self.__vertical_behavior = SizeBehavior.FLEX
+
         self.parent_layout: "Layout" = None
 
-        self.size = Size(*size)
-        self.relative_position = pygame.Vector2(position)
-
-        self.children = []
+        self.children: list[Widget | Layout] = []
 
         self.__need_realign = False
+        self.iterations = 0
 
     @property
     def position(self) -> pygame.Vector2:
@@ -56,6 +63,63 @@ class Layout:
             return self.relative_position
         else:
             return self.parent_layout.get_absolute_position(self.relative_position)
+        
+    @property
+    def absolute_rect(self) -> pygame.Rect:
+        """ pygame.Rect object representing layout's absolute geometry. """
+        return pygame.Rect(
+            self.position.x,
+            self.position.y,
+            self.current_size.width,
+            self.current_size.height
+        )
+    
+    @property
+    def absolute_frect(self) -> pygame.FRect:
+        """ pygame.FRect object representing layout's absolute geometry. """
+        return pygame.FRect(
+            self.position.x,
+            self.position.y,
+            self.current_size.width,
+            self.current_size.height
+        )
+        
+    @property
+    def size_behavior(self) -> tuple[SizeBehavior, SizeBehavior]:
+        """ Horizontal and vertical size behavior of the layout. """
+        return (self.__horizontal_behavior, self.__vertical_behavior)
+    
+    @size_behavior.setter
+    def size_behavior(self, value: tuple[SizeBehavior, SizeBehavior]) -> None:
+        self.__horizontal_behavior = value[0]
+        self.__vertical_behavior = value[1]
+        
+        if self.parent_layout is not None:
+            self.parent_layout.realign()
+
+    @property
+    def horizontal_behavior(self) -> SizeBehavior:
+        """ Horizontal size behavior of the layout. """
+        return self.__horizontal_behavior
+    
+    @horizontal_behavior.setter
+    def horizontal_behavior(self, value: SizeBehavior) -> None:
+        self.__horizontal_behavior = value
+        
+        if self.parent_layout is not None:
+            self.parent_layout.realign()
+
+    @property
+    def vertical_behavior(self) -> SizeBehavior:
+        """ Vertical size behavior of the layout. """
+        return self.__vertical_behavior
+    
+    @vertical_behavior.setter
+    def vertical_behavior(self, value: SizeBehavior) -> None:
+        self.__vertical_behavior = value
+        
+        if self.parent_layout is not None:
+            self.parent_layout.realign()
 
     def update(self, events: list[pygame.Event]):
         """
@@ -69,12 +133,19 @@ class Layout:
             Event list returned by the `pygame.event.get()`
         """
 
+        # Realign children layouts bottom-up
+        for child in self.children:
+            if isinstance(child, Layout):
+                child.realign()
+                child.update(events)
+
         if self.__need_realign:
             self._realign()
             self.__need_realign = False
 
         for child in self.children:
-            child.update(events)
+            if isinstance(child, Widget):
+                child.update(events)
 
     def render(self, surface: pygame.Surface) -> None:
         """
@@ -97,10 +168,10 @@ class Layout:
 
     def _realign(self) -> None:
         """
-        Realign wigets.
+        Realign widgets.
         
         This method can be implemented in a subclass to
-        create a custom layout distribution.
+        create a custom layout solver.
         """
 
     def get_absolute_position(self, position: pygame.Vector2) -> pygame.Vector2:
@@ -109,15 +180,27 @@ class Layout:
         return self.position + position
     
     def add_widget(self, widget: Widget) -> None:
-        """ Add a widget to the layout. """
+        """ Add a widget to this layout. """
         self.children.append(widget)
         widget.parent_layout = self
         self.realign()
 
     def remove_widget(self, widget: Widget) -> None:
-        """ Remove a widget from the layout. """
+        """ Remove a widget from this layout. """
         self.children.remove(widget)
         widget.parent_layout = None
+        self.realign()
+
+    def add_layout(self, layout: "Layout") -> None:
+        """ Add a layout to this layout. """
+        self.children.append(layout)
+        layout.parent_layout = self
+        self.realign()
+
+    def remove_layout(self, layout: "Layout") -> None:
+        """ Remove a layout from this layout. """
+        self.children.remove(layout)
+        layout.parent_layout = None
         self.realign()
 
     def add_stretcher(self) -> Widget:

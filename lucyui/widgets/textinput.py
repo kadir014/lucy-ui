@@ -27,6 +27,14 @@ class TextInput(Widget):
     -----
     enter_pressed
         Emitted when the Enter key is pressed.
+
+    Methods
+    -------
+    clear
+
+    get_selection
+
+    unselect
     """
 
     def __init__(self,
@@ -39,8 +47,6 @@ class TextInput(Widget):
         """
         Parameters
         ----------
-        parent_layout
-            The layout that this widget belongs to.
         font
             Font object to be used to render text.
         preferred_size
@@ -479,45 +485,6 @@ class TextInput(Widget):
 
         super().update_surface()
 
-    def unselect(self) -> None:
-        """ Remove the text selection. """
-
-        self._sel_on = False
-        self._ssel_on = False
-        self._sel_done = False
-        self._sel_start = -1
-        self._sel_end = -1
-
-    def get_selection(self) -> str:
-        """ Return the text in the selected area. """
-
-        if not self._sel_done: return ""
-
-        if self._sel_start > self._sel_end:
-            sel_start = self._sel_end
-            sel_end = self._sel_start
-        else:
-            sel_start = self._sel_start
-            sel_end = self._sel_end
-
-        return self.text[sel_start:sel_end]
-    
-    def clear(self) -> None:
-        """ Clear the contents of text input. """
-
-        self.text = ""
-        self._reset_cursor_blink()
-        self.unselect()
-
-        self.cursor_pos = 0
-
-        cursor_x = self._get_partial_text_size(self.cursor_pos)[0]
-
-        if cursor_x < self._scroll:
-            self._scroll -= self._scroll - cursor_x
-
-        self.paint_event()
-
     def paint_event(self) -> None:
         if not self.current_size.is_valid(): return
         if self._padded_surf is None: return
@@ -630,3 +597,44 @@ class TextInput(Widget):
 
     def mouse_leave_event(self, position: pygame.Vector2) -> None:
         pygame.mouse.set_cursor(self._prev_cursor)
+
+    # Widget methods
+
+    def unselect(self) -> None:
+        """ Remove the text selection. """
+
+        self._sel_on = False
+        self._ssel_on = False
+        self._sel_done = False
+        self._sel_start = -1
+        self._sel_end = -1
+
+    def get_selection(self) -> str:
+        """ Return the text in the selected area. """
+
+        if not self._sel_done: return ""
+
+        if self._sel_start > self._sel_end:
+            sel_start = self._sel_end
+            sel_end = self._sel_start
+        else:
+            sel_start = self._sel_start
+            sel_end = self._sel_end
+
+        return self.text[sel_start:sel_end]
+    
+    def clear(self) -> None:
+        """ Clear the contents of text input. """
+
+        self.text = ""
+        self._reset_cursor_blink()
+        self.unselect()
+
+        self.cursor_pos = 0
+
+        cursor_x = self._get_partial_text_size(self.cursor_pos)[0]
+
+        if cursor_x < self._scroll:
+            self._scroll -= self._scroll - cursor_x
+
+        self.paint_event()

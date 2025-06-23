@@ -36,7 +36,7 @@ def solve_size_constraints(
         direction = +1
 
         for widget in widgets:
-            if widget.size_behavior[axis] == SizeBehavior.GROW or widget.size_behavior[axis] == SizeBehavior.FLEXIBLE:
+            if widget.size_behavior[axis] == SizeBehavior.GROW or widget.size_behavior[axis] == SizeBehavior.FLEX:
                 eligible.append(widget)
 
     # There is not enough space, shrink
@@ -45,7 +45,7 @@ def solve_size_constraints(
         direction = -1
 
         for widget in widgets:
-            if widget.size_behavior[axis] == SizeBehavior.SHRINK or widget.size_behavior[axis] == SizeBehavior.FLEXIBLE:
+            if widget.size_behavior[axis] == SizeBehavior.SHRINK or widget.size_behavior[axis] == SizeBehavior.FLEX:
                 eligible.append(widget)
 
     remaining = abs(diff)
