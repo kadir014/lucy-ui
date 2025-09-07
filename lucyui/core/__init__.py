@@ -14,5 +14,6 @@ from lucyui.core.models import (
     SizeBehavior,
     LayoutAlignment,
     LayoutDistribution,
-    StackDirection
+    StackDirection,
+    TextWrapMode
 )

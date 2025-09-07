@@ -23,6 +23,22 @@ class TextInput(Widget):
     """
     Single line text editing widget.
 
+    Default controls:
+
+    | Keystroke        | Action                                          |
+    |------------------|-------------------------------------------------|
+    | BACKSPACE        | Delete the character before cursor or selection.|
+    | CTRL+BACKSPACE   | Delete the word before cursor.                  |
+    | CTRL+C           | Copy selection to clipboard.                    |
+    | CTRL+V           | Paste clipboard.                                |
+    | CTRL+A           | Select all.                                     |
+    | HOME             | Jump cursor to the beginning.                   |
+    | END              | Jump cursor to the end.                         |
+    | LEFT             | Move cursor left.                               |
+    | RIGHT            | Move cursor right.                              |
+    | SHIFT+LEFT/RIGHT | Move cursor and select as you go.               |
+    | CTRL+LEFT/RIGHT  | Move cursor word by word.                       |
+
     Hooks
     -----
     enter_pressed
@@ -148,7 +164,8 @@ class TextInput(Widget):
             self._cursor_blink = not self._cursor_blink
             self.paint_event() 
 
-        if not self.on_focus: return
+        if not self.on_focus:
+            return
 
         for event in events:
             if event.type == pygame.TEXTINPUT:
@@ -327,7 +344,7 @@ class TextInput(Widget):
                             if cursor_x - self._scroll > input_width:
                                 self._scroll += cursor_x - self._scroll - input_width
 
-                    # Move cursor right
+                    # Move cursor left
                     elif event.key == pygame.K_LEFT:
                         self._reset_cursor_blink()
 
@@ -358,7 +375,7 @@ class TextInput(Widget):
                             if cursor_x < self._scroll:
                                 self._scroll -= self._scroll - cursor_x
 
-                    # Move cursor left
+                    # Move cursor right
                     elif event.key == pygame.K_RIGHT:
                         self._reset_cursor_blink()
 

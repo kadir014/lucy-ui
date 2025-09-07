@@ -29,6 +29,7 @@ class TextButton(AbstractButton):
     released
         Emitted when the button is released.
     """
+    
     def __init__(self,
             font: pygame.Font,
             preferred_size: Optional[SizeLike] = (130, 40),

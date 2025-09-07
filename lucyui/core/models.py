@@ -16,6 +16,15 @@ from dataclasses import dataclass
 import pygame
 
 
+class MouseButton(Enum):
+    """
+    Possible mouse button states.
+    """
+    LEFT = auto()
+    RIGHT = auto()
+    MIDDLE = auto()
+
+
 class ConstrainedBoxModel:
     """
     This class is the smallest building block for a UI element, describing a
@@ -62,7 +71,7 @@ class ConstrainedBoxModel:
             self.current_size.height
         )
 
-@dataclass
+@dataclass(slots=True)
 class Size:
     """
     A dataclass representing 2D dimensions.
@@ -94,7 +103,7 @@ class Size:
         return (self.width, self.height)
     
     def is_valid(self) -> bool:
-        """ Is this a valid size (dimension bigger than 0.) """
+        """ Is this a valid size (dimension bigger than 0)? """
         return self.width > 0 and self.height > 0
     
 
@@ -174,3 +183,22 @@ class StackDirection(Enum):
 
     HORIZONTAL = 0
     VERTICAL = 1
+
+
+class TextWrapMode(Enum):
+    """
+    Text wrapping mode.
+
+    Fields
+    ------
+    NONE
+        Do not wrap text.
+    CHARACTER
+        Wrap text at each character.
+    WORD
+        Wrap text at each word.
+    """
+
+    NONE = auto()
+    CHARACTER = auto()
+    WORD = auto()

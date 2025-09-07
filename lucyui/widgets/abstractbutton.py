@@ -30,6 +30,7 @@ class AbstractButton(Widget):
     released
         Emitted when the button is released.
     """
+    
     def __init__(self,
             preferred_size: Optional[SizeLike] = (100, 40),
             ) -> None:

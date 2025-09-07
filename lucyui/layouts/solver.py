@@ -12,6 +12,10 @@ from lucyui.widgets import Widget
 from lucyui.core import SizeBehavior
 
 
+# Allowed smallest float error
+EPSILON = 0.001
+
+
 def solve_size_constraints(
         widgets: list[Widget],
         size: float,
@@ -53,7 +57,7 @@ def solve_size_constraints(
     iterations = 0
 
     # Iteratively solve sizes
-    while remaining > 0 and len(eligible) > 0:
+    while remaining > EPSILON and len(eligible) > 0:
         iterations += 1
         
         share = remaining / len(eligible)

@@ -1,7 +1,7 @@
 [project]
 name = "lucyui"
 description = "User Interface and Layout Management Library for Pygame"
-version = "0.0.3"
+version = "0.0.4"
 readme = "README.md"
 authors = [
     {name="Kadir Aksoy"},

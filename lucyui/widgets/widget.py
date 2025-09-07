@@ -14,7 +14,7 @@ from time import perf_counter
 import pygame
 
 from lucyui.core import SizeBehavior, Size
-from lucyui.core.models import ConstrainedBoxModel
+from lucyui.core.models import ConstrainedBoxModel, MouseButton
 from lucyui.core.types import SizeLike
 
 if TYPE_CHECKING:
@@ -127,6 +127,20 @@ class Widget(ConstrainedBoxModel):
         if self.parent_layout is not None:
             self.parent_layout.realign()
 
+    def __get_mouse_button(self, event_button: int) -> MouseButton:
+        """ Get `MouseButton` from pygame event. """
+        
+        if event_button == 1:
+            return MouseButton.LEFT
+        
+        elif event_button == 2:
+            return MouseButton.MIDDLE
+        
+        elif event_button == 3:
+            return MouseButton.RIGHT
+        
+        # TODO: 4,5 -> wheel  5+ -> extra buttons 
+
     def update(self, events: list[pygame.Event]) -> None:
         """
         Process the widget logic.
@@ -151,25 +165,37 @@ class Widget(ConstrainedBoxModel):
 
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if (perf_counter() - self._last_pressed) * 1000 < self.double_click_duration:
-                    self._last_pressed = 0
-                    self.mouse_double_click_event(pygame.Vector2(*event.pos))
-                    
-                if event.button == 1:
-                    if self._hovered:
-                        self._pressed = True
-                        self._last_pressed = perf_counter()
-                        self.mouse_press_event(pygame.Vector2(*event.pos))
+                global_mouse = pygame.Vector2(*event.pos)
+                local_mouse = global_mouse - self.position
 
-                    else:
-                        self.unfocus()
+                if event.button == 1:
+                    if (perf_counter() - self._last_pressed) * 1000 < self.double_click_duration:
+                        self._last_pressed = 0
+                        self.mouse_double_click_event(global_mouse)
+
+                    self._last_pressed = perf_counter()
+                    
+                if self._hovered:
+                    self._pressed = True
+                    button = self.__get_mouse_button(event.button)
+                    self.mouse_press_event(button, local_mouse, global_mouse)
+
+                else:
+                    self.unfocus()
 
             elif event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1:
-                    if self._pressed:
-                        self._pressed = False
-                        self.mouse_release_event(pygame.Vector2(*event.pos))
-                        self.focus()
+                if self._pressed:
+                    global_mouse = pygame.Vector2(*event.pos)
+                    local_mouse = global_mouse - self.position
+
+                    self._pressed = False
+                    button = self.__get_mouse_button(event.button)
+                    self.mouse_release_event(button, local_mouse, global_mouse)
+                    self.focus()
+
+            elif event.type == pygame.MOUSEWHEEL:
+                if self._hovered:
+                    self.mouse_wheel_event(pygame.Vector2(event.precise_x, event.precise_y))
 
     def render(self, surface: pygame.Surface) -> None:
         """
@@ -187,11 +213,16 @@ class Widget(ConstrainedBoxModel):
         if self.surface is not None:
             surface.blit(self.surface, self.position)
 
-    def update_surface(self) -> None:
+    def update_surface(self, repaint: bool = True) -> None:
         """
         Update the widget surface and repaint.
 
         This method is usually called internally by layout management.
+
+        Parameters
+        ----------
+        repaint
+            Repaint after updating the surface dimensions.
         """
 
         if not self.current_size.is_valid():
@@ -199,7 +230,9 @@ class Widget(ConstrainedBoxModel):
             return
         
         self.surface = pygame.Surface(self.current_size.to_tuple(), pygame.SRCALPHA).convert_alpha()
-        self.paint_event()
+        
+        if repaint:
+            self.paint_event()
     
     def focus(self) -> None:
         """ Get the widget in focus. """
@@ -256,26 +289,42 @@ class Widget(ConstrainedBoxModel):
             Mouse position where this event occured.
         """
 
-    def mouse_press_event(self, position: pygame.Vector2) -> None:
+    def mouse_press_event(self,
+            button: MouseButton,
+            local_position: pygame.Vector2,
+            global_position: pygame.Vector2
+            ) -> None:
         """ 
         This event can be implemented in a subclass to
         receive when the mouse button is pressed.
 
         Parameters
         ----------
-        position
-            Mouse position where this event occured.
+        button
+            Mouse button enum.
+        local_position
+            Local mouse position (in widget space) where this event occured.
+        global_position
+            Global mouse position (in screen space) where this event occured.
         """
 
-    def mouse_release_event(self, position: pygame.Vector2) -> None:
+    def mouse_release_event(self,
+            button: MouseButton,
+            local_position: pygame.Vector2,
+            global_position: pygame.Vector2
+            ) -> None:
         """
         This event can be implemented in a subclass to
         receive when the mouse button is released.
 
         Parameters
         ----------
-        position
-            Mouse position where this event occured.
+        button
+            Mouse button enum.
+        local_position
+            Local mouse position (in widget space) where this event occured.
+        global_position
+            Global mouse position (in screen space) where this event occured.
         """
 
     def mouse_double_click_event(self, position: pygame.Vector2) -> None:
@@ -287,4 +336,15 @@ class Widget(ConstrainedBoxModel):
         ----------
         position
             Mouse position where this event occured.
+        """
+
+    def mouse_wheel_event(self, scroll: pygame.Vector2) -> None:
+        """
+        This event can be implemented in a subclass to
+        receive when the mouse wheel is scrolled.
+
+        Parameters
+        ----------
+        scroll
+            Amount of wheel scroll in each axis.
         """
