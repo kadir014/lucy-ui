@@ -608,11 +608,17 @@ class TextInput(Widget):
         self.unselect()
         self.paint_event()
 
-    def mouse_enter_event(self, position: pygame.Vector2) -> None:
+    def mouse_enter_event(self,
+            local_position: pygame.Vector2,
+            global_position: pygame.Vector2
+            ) -> None:
         self._prev_cursor = pygame.mouse.get_cursor()
         pygame.mouse.set_cursor(pygame.Cursor(pygame.SYSTEM_CURSOR_IBEAM))
 
-    def mouse_leave_event(self, position: pygame.Vector2) -> None:
+    def mouse_leave_event(self,
+            local_position: pygame.Vector2,
+            global_position: pygame.Vector2
+            ) -> None:
         pygame.mouse.set_cursor(self._prev_cursor)
 
     # Widget methods

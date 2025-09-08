@@ -13,14 +13,14 @@ from typing import Callable
 
 class Hook:
     """
-    Callback handler for widget events.
+    Callback handler for widget actions.
 
     Similar to Qt's signal & slot system, hooks basically stores and emits
     callbacks to their owners. Widgets can have multiple hooks for specific actions.
     """
 
     def __init__(self) -> None:
-        self.callbacks = []
+        self._callbacks = set()
 
     def connect(self, func: Callable) -> Callable:
         """
@@ -32,11 +32,24 @@ class Hook:
             Callback to connect.
         """
 
-        self.callbacks.append(func)
+        self._callbacks.add(func)
         return func
+    
+    def disconnect(self, func: Callable) -> None:
+        """
+        Disconnect a callback function from this hook.
+
+        Parameters
+        ----------
+        func
+            Callback to disconnect.
+        """
+
+        if func in self._callbacks:
+            self._callbacks.remove(func)
     
     def emit(self, *args, **kwargs) -> None:
         """ Emit the hook. """
 
-        for callback in self.callbacks:
+        for callback in self._callbacks:
             callback(*args, **kwargs)

@@ -44,15 +44,27 @@ class TextButton(AbstractButton):
         preferred_size
             Preferred dimensions of the widget.
         text
-            Text label of the button.
+            Text content of the button.
         antialiasing
             Whether to use anti-aliasing while rendering text.
         """
         self.font = font
-        self.text = text
+        self.__text = text
         self.antialiasing = antialiasing
 
         super().__init__(preferred_size=preferred_size)
+
+    @property
+    def text(self) -> str:
+        """
+        Text content of the button.
+        """
+        return self.__text
+    
+    @text.setter
+    def text(self, value: str) -> None:
+        self.__text = value
+        self.paint_event()
 
     def paint_event(self) -> None:
         self.surface.fill((0, 0, 0, 0))

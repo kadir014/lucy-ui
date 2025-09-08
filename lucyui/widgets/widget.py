@@ -154,24 +154,22 @@ class Widget(ConstrainedBoxModel):
             Event list returned by `pygame.event.get()`
         """
 
-        mouse = pygame.Vector2(*pygame.mouse.get_pos())
+        global_mouse = pygame.Vector2(*pygame.mouse.get_pos())
+        local_mouse = global_mouse - self.position
 
-        if self.absolute_frect.collidepoint(mouse.x, mouse.y):
-            if not self._hovered: self.mouse_enter_event(mouse)
+        if self.absolute_frect.collidepoint(global_mouse.x, global_mouse.y):
+            if not self._hovered: self.mouse_enter_event(local_mouse, global_mouse)
             self._hovered = True
         else:
-            if self._hovered: self.mouse_leave_event(mouse)
+            if self._hovered: self.mouse_leave_event(local_mouse, global_mouse)
             self._hovered = False
 
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN:
-                global_mouse = pygame.Vector2(*event.pos)
-                local_mouse = global_mouse - self.position
-
                 if event.button == 1:
                     if (perf_counter() - self._last_pressed) * 1000 < self.double_click_duration:
                         self._last_pressed = 0
-                        self.mouse_double_click_event(global_mouse)
+                        self.mouse_double_click_event(local_mouse, global_mouse)
 
                     self._last_pressed = perf_counter()
                     
@@ -185,9 +183,6 @@ class Widget(ConstrainedBoxModel):
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if self._pressed:
-                    global_mouse = pygame.Vector2(*event.pos)
-                    local_mouse = global_mouse - self.position
-
                     self._pressed = False
                     button = self.__get_mouse_button(event.button)
                     self.mouse_release_event(button, local_mouse, global_mouse)
@@ -267,26 +262,36 @@ class Widget(ConstrainedBoxModel):
         receive when the focus of this widget is lost.
         """
 
-    def mouse_enter_event(self, position: pygame.Vector2) -> None:
+    def mouse_enter_event(self,
+            local_position: pygame.Vector2,
+            global_position: pygame.Vector2
+            ) -> None:
         """ 
         This event can be implemented in a subclass to
         receive when the mouse cursor enters the widget.
 
         Parameters
         ----------
-        position
-            Mouse position where this event occured.
+        local_position
+            Local mouse position (in widget space) where this event occured.
+        global_position
+            Global mouse position (in screen space) where this event occured.
         """
 
-    def mouse_leave_event(self, position: pygame.Vector2) -> None:
+    def mouse_leave_event(self,
+            local_position: pygame.Vector2,
+            global_position: pygame.Vector2
+            ) -> None:
         """ 
         This event can be implemented in a subclass to
         receive when the mouse cursor leaves the widget.
 
         Parameters
         ----------
-        position
-            Mouse position where this event occured.
+        local_position
+            Local mouse position (in widget space) where this event occured.
+        global_position
+            Global mouse position (in screen space) where this event occured.
         """
 
     def mouse_press_event(self,
@@ -301,7 +306,7 @@ class Widget(ConstrainedBoxModel):
         Parameters
         ----------
         button
-            Mouse button enum.
+            Mouse button state.
         local_position
             Local mouse position (in widget space) where this event occured.
         global_position
@@ -320,22 +325,27 @@ class Widget(ConstrainedBoxModel):
         Parameters
         ----------
         button
-            Mouse button enum.
+            Mouse button state.
         local_position
             Local mouse position (in widget space) where this event occured.
         global_position
             Global mouse position (in screen space) where this event occured.
         """
 
-    def mouse_double_click_event(self, position: pygame.Vector2) -> None:
+    def mouse_double_click_event(self,
+            local_position: pygame.Vector2,
+            global_position: pygame.Vector2
+            ) -> None:
         """
         This event can be implemented in a subclass to
         receive when the mouse is double clicked.
 
         Parameters
         ----------
-        position
-            Mouse position where this event occured.
+        local_position
+            Local mouse position (in widget space) where this event occured.
+        global_position
+            Global mouse position (in screen space) where this event occured.
         """
 
     def mouse_wheel_event(self, scroll: pygame.Vector2) -> None:

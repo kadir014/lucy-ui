@@ -14,6 +14,7 @@ import pygame
 
 from lucyui.core import Hook
 from lucyui.core.types import SizeLike
+from lucyui.core.models import MouseButton
 from lucyui.widgets import Widget
 
 
@@ -46,9 +47,17 @@ class AbstractButton(Widget):
 
         super().__init__(preferred_size=preferred_size)
 
-    def mouse_press_event(self, position: pygame.Vector2) -> None:
+    def mouse_press_event(self,
+            button: MouseButton,
+            local_position: pygame.Vector2,
+            global_position: pygame.Vector2
+            ) -> None:
         self.pressed.emit()
 
-    def mouse_release_event(self, position: pygame.Vector2) -> None:
+    def mouse_release_event(self,
+            button: MouseButton,
+            local_position: pygame.Vector2,
+            global_position: pygame.Vector2
+            ) -> None:
         self.released.emit()
         self.clicked.emit()
