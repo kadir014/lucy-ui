@@ -1,5 +1,6 @@
 # Project stuff
 stats.prof
+testing/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
