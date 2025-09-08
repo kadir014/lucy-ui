@@ -12,3 +12,4 @@ from lucyui.widgets.widget import Widget
 from lucyui.widgets.abstractbutton import AbstractButton
 from lucyui.widgets.textbutton import TextButton
 from lucyui.widgets.textinput import TextInput
+from lucyui.widgets.label import Label
