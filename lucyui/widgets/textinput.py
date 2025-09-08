@@ -55,7 +55,7 @@ class TextInput(Widget):
 
     def __init__(self,
             font: pygame.Font,
-            preferred_size: Optional[SizeLike] = (130, 40),
+            preferred_size: Optional[SizeLike] = (200, 40),
             antialiasing: bool = True,
             placeholder: str = "",
             padding: int = 4

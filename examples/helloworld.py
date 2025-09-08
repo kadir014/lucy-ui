@@ -15,7 +15,7 @@
 import pygame
 
 from lucyui.core import __version__
-from lucyui.core import Size, StackDirection
+from lucyui.core import Size, StackDirection, SizeBehavior, LayoutDistribution
 from lucyui.widgets import TextInput, TextButton, Label
 from lucyui.layouts import Stack
 
@@ -38,19 +38,32 @@ label = Label(font, "Hello world!")
 root_lyt.add_widget(label)
 
 score = 0
-button = TextButton(font, text=f"Score: {score}")
-root_lyt.add_widget(button)
+score_button = TextButton(font, text=f"Score: {score}")
+root_lyt.add_widget(score_button)
 
-text_input = TextInput(font, placeholder="Hey! You can write here.")
-root_lyt.add_widget(text_input)
+# Now we want the text input and clear button to be next to each other.
+# So we create a child layout, which will hold the next widgets, and add it to root layout.
+sub_lyt = Stack(StackDirection.HORIZONTAL)
+sub_lyt.vertical_behavior = SizeBehavior.FIXED
+root_lyt.add_layout(sub_lyt)
+
+text_input = TextInput(font, placeholder="You can write here.")
+sub_lyt.add_widget(text_input)
+
+clear_button = TextButton(font, text="Clear")
+sub_lyt.add_widget(clear_button)
+
 
 # Widget hooks are basically actions that fire under certain events.
 # You can connect multiple callback functions to a single hook.
-@button.clicked.connect
+@score_button.clicked.connect
 def clicked_callback():
     global score
     score += 1
-    button.text = f"Score: {score}"
+    score_button.text = f"Score: {score}"
+
+# And of course they don't have to be used as decorators.
+clear_button.clicked.connect(text_input.clear)
 
 
 if __name__ == "__main__":
