@@ -81,7 +81,7 @@ if __name__ == "__main__":
                 new_width, new_height = event.x, event.y
 
                 # Change the root layout's size to resized window dimensions
-                # and update its content by requestion a realign.
+                # and update its content by requesting a realign.
                 root_lyt.current_size = Size(new_width, new_height)
                 root_lyt.realign()
         
