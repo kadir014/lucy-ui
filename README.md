@@ -1,15 +1,43 @@
 # lucy-ui
+<img src="https://img.shields.io/badge/license-MIT-blue.svg">
+<img src="https://img.shields.io/badge/version-0.0.4-yellow">
+
 A modern, easy-to-use user interface and layout management library for Pygame(-CE).
 
 
 
+# Features
+- Versatile layout engine
+  - Respects each widget's size constraints
+  - Flexible customization for spacing, alignment and distribution
+- Geometry management
+  - Widgets can have different sizing behaviors or constraints
+  - They expand, shrink, or stay fixed as space allows
+- Core widgets
+  - Labels
+  - Buttons
+  - Single-line text inputs
+- Various interactive example demos included
+
+
+
 # Examples
-TODO
+Look at `examples` folder for various interactive demos. You can get started with `examples/helloworld.py`.
 
 
 
 # Installation
-TODO
+Currently the library is not hosted on PyPI yet.
+
+Clone the repository.
+```sh
+$ git clone https://github.com/kadir014/lucy-ui.git
+```
+
+cd into the repository and simply install the package.
+```sh
+$ pip install .
+```
 
 
 
