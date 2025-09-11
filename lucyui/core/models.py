@@ -24,6 +24,24 @@ class MouseButton(Enum):
     RIGHT = auto()
     MIDDLE = auto()
 
+    @classmethod
+    def from_pygame_event(cls, event: pygame.Event) -> "MouseButton":
+        """ Construct from pygame event. """
+        
+        if event.button == 1:
+            return cls.LEFT
+        
+        elif event.button  == 2:
+            return cls.MIDDLE
+        
+        elif event.button  == 3:
+            return cls.RIGHT
+        
+        else:
+            raise ValueError("Unknown event type or value.")
+        
+        # TODO: 4,5 -> wheel  5+ -> extra buttons 
+
 
 class ConstrainedBoxModel:
     """
@@ -41,15 +59,15 @@ class ConstrainedBoxModel:
         preferred_size
             Preferred size of the box model.
         relative_position
-            Position of the box model relative to world or its parent.
+            Position of the box model relative to screen or its parent.
         """
         self.preferred_size = preferred_size
         self.current_size = self.preferred_size.copy()
         
         self.relative_position = relative_position
 
-        self.maximum_size = Size(0, 0)
-        self.minimum_size = Size(0, 0)
+        self.maximum_size = Size(0.0, 0.0)
+        self.minimum_size = Size(0.0, 0.0)
 
     @property
     def rect(self) -> pygame.Rect:

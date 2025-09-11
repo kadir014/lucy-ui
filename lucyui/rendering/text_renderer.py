@@ -20,15 +20,30 @@ from lucyui.core import Size, TextWrapMode
 class TextRenderer:
     """
     Text renderer class.
+
+    Attributes
+    ----------
+    font
+        Font object to use to render the text.
+    line_gap
+        Line gap in pixels to use between multiline text.
+    wrap_mode
+        Text wrapping mode.
+    antialiasing
+        Whether to use antialiased rendering of font.
     """
 
     font: pygame.Font
     line_gap: int = 4
-    wrap_mode: TextWrapMode = TextWrapMode.WORD
+    wrap_mode: TextWrapMode = TextWrapMode.NONE
+    antialiasing: bool = True
 
     def render(self, text: str, size: SizeLike) -> pygame.Surface:
         """
         Render text.
+
+        Wrap modes wrap the text on horizontal dimension given, however, the
+        final size can exceed the given size depending on few factors.
 
         Parameters
         ----------
@@ -41,7 +56,7 @@ class TextRenderer:
         size = Size(*size)
 
         if self.wrap_mode == TextWrapMode.NONE:
-            return self.font.render(text, True, (0, 0, 0))
+            return self.font.render(text, self.antialiasing, (0, 0, 0))
         
         elif self.wrap_mode == TextWrapMode.WORD:
             if size.width == 0:
@@ -72,7 +87,7 @@ class TextRenderer:
                     line = words[word_i]
                     word_i += 1
 
-                line_surf = self.font.render(line[:-1], True, (0, 0, 0))
+                line_surf = self.font.render(line[:-1], self.antialiasing, (0, 0, 0))
                 if line_surf.width > max_line_width: max_line_width = line_surf.width
                 lines.append(line_surf)
 

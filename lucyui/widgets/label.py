@@ -20,7 +20,12 @@ from lucyui.rendering import TextRenderer
 
 class Label(Widget):
     """
-    Text label class.
+    Text display widget.
+
+    Attributes
+    ----------
+    renderer
+        Text renderer this widget uses.
     """
 
     def __init__(self,
@@ -37,6 +42,8 @@ class Label(Widget):
 
         self.__text = text
         self.__text_surf = pygame.Surface((0, 0))
+
+        # TODO
         self.__initial_preferred_size = Size(*preferred_size)
 
         self.renderer = TextRenderer(font)

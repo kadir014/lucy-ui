@@ -23,8 +23,20 @@ class TextInput(Widget):
     """
     Single line text editing widget.
 
-    Default controls:
+    Attributes
+    ----------
+    allow_copying
+        Allow copying selection from text input.
+    allow_pasting
+        Allow pasting clipboard content onto text input.
 
+    Hooks
+    -----
+    enter_pressed
+        Emitted when the Enter key is pressed.
+
+    Default controls
+    ----------------
     | Keystroke        | Action                                           |
     |------------------|--------------------------------------------------|
     | BACKSPACE        | Delete the character before cursor or selection. |
@@ -38,19 +50,6 @@ class TextInput(Widget):
     | RIGHT            | Move cursor right.                               |
     | SHIFT+LEFT/RIGHT | Move cursor and select as you go.                |
     | CTRL+LEFT/RIGHT  | Move cursor word by word.                        |
-
-    Hooks
-    -----
-    enter_pressed
-        Emitted when the Enter key is pressed.
-
-    Methods
-    -------
-    clear
-
-    get_selection
-
-    unselect
     """
 
     def __init__(self,
@@ -162,7 +161,7 @@ class TextInput(Widget):
             self._cursor_blink_last = now
 
             self._cursor_blink = not self._cursor_blink
-            self.paint_event() 
+            self.repaint() 
 
         if not self.on_focus:
             return
@@ -219,7 +218,7 @@ class TextInput(Widget):
                     if cursor_x - self._scroll > input_width:
                         self._scroll += cursor_x - self._scroll - input_width
 
-                self.paint_event()
+                self.repaint()
 
             elif event.type == pygame.KEYDOWN:
                 if not (self._sel_on and not self._sel_done):
@@ -447,7 +446,7 @@ class TextInput(Widget):
                         if cursor_x - self._scroll > input_width:
                             self._scroll += cursor_x - self._scroll - input_width
 
-                    self.paint_event()
+                    self.repaint()
 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_LSHIFT:
@@ -464,7 +463,7 @@ class TextInput(Widget):
                         self._sel_on = True
                         self._sel_done = False
                         self._sel_start = self.cursor_pos
-                        self.paint_event()
+                        self.repaint()
 
             elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 if self._sel_start == self._sel_end:
@@ -472,7 +471,7 @@ class TextInput(Widget):
 
                 elif self._sel_on:
                     self._sel_done = True
-                    self.paint_event()
+                    self.repaint()
 
         if self._sel_on and not self._sel_done:
             mx = pygame.mouse.get_pos()[0] - self.position.x
@@ -483,7 +482,7 @@ class TextInput(Widget):
                 self.cursor_pos = mi
                 self._sel_end = self.cursor_pos
 
-                self.paint_event()
+                self.repaint()
 
     def update_surface(self):
         padded_size = Size(
@@ -602,11 +601,11 @@ class TextInput(Widget):
     
     def focus_event(self) -> None:
         self._reset_cursor_blink()
-        self.paint_event()
+        self.repaint()
 
     def unfocus_event(self) -> None:
         self.unselect()
-        self.paint_event()
+        self.repaint()
 
     def mouse_enter_event(self,
             local_position: pygame.Vector2,
@@ -660,4 +659,4 @@ class TextInput(Widget):
         if cursor_x < self._scroll:
             self._scroll -= self._scroll - cursor_x
 
-        self.paint_event()
+        self.repaint()

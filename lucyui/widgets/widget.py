@@ -15,7 +15,7 @@ import pygame
 
 from lucyui.core import SizeBehavior, Size
 from lucyui.core.models import ConstrainedBoxModel, MouseButton
-from lucyui.core.types import SizeLike
+from lucyui.core.types import SizeLike, Coordinate
 
 if TYPE_CHECKING:
     from lucyui.layouts import Layout
@@ -25,49 +25,63 @@ class Widget(ConstrainedBoxModel):
     """
     Base user interface element.
 
-    Widget is the base component for all user interface elements that are
+    Widgets are the base building block for all user interface elements that are
     displayed on the window and can be interacted with.
+
+    Their geometry is usually controlled and adjusted by parent layouts.
+
+    Attributes
+    ----------
+    on_focus
+        Boolean indicating if the widget is currently on focus or not.
+    parent_layout
+        Parenting layout of this widget, can be None.
+    doube_click_duration
+        Delay needed for a double click to register in milliseconds.
+    repaint_on_mouse_interaction
+        Whether to repaint the widget on mouse events like pressing or hovering.
     """
 
     def __init__(self,
             preferred_size: Optional[SizeLike] = None,
-            double_click_duration: float = 500.0
+            relative_position: Coordinate = (0.0, 0.0)
             ) -> None:
         """
         Parameters
         ----------
         preferred_size
             Preferred dimensions of the widget.
-        double_click_duration
-            Delay needed for a double click to register in milliseconds.
+        relative_position
+            Position relative to parent.
+            Only needed if this widget is not handled by a layout.
         """
 
         if preferred_size is None: preferred_size = Size(10, 10)
         else: preferred_size = Size(*preferred_size)
 
-        super().__init__(
-            preferred_size,
-            pygame.Vector2(0, 0)
-        )
+        super().__init__(preferred_size, pygame.Vector2(relative_position))
+
+        self.__need_repaint = False
 
         self.__horizontal_behavior = SizeBehavior.FIXED
         self.__vertical_behavior = SizeBehavior.FIXED
 
         self._hovered = False
-        self._pressed = False
+        self._pressed = [False, False, False]
 
+        self._last_pressed = 0.0
+
+        # Public attributes
+        self.double_click_duration = 500.0
         self.on_focus = False
-
-        self.double_click_duration = double_click_duration
-        self._last_pressed = 0
-
         self.parent_layout: "Layout" = None
+        self.repaint_on_mouse_interaction = False
 
         self.update_surface()
 
     @property
     def position(self) -> pygame.Vector2:
-        """ Widget's absolute position. """
+        """ Widget's absolute position in screen space. """
         return self.parent_layout.get_absolute_position(self.relative_position)
     
     @property
@@ -127,20 +141,6 @@ class Widget(ConstrainedBoxModel):
         if self.parent_layout is not None:
             self.parent_layout.realign()
 
-    def __get_mouse_button(self, event_button: int) -> MouseButton:
-        """ Get `MouseButton` from pygame event. """
-        
-        if event_button == 1:
-            return MouseButton.LEFT
-        
-        elif event_button == 2:
-            return MouseButton.MIDDLE
-        
-        elif event_button == 3:
-            return MouseButton.RIGHT
-        
-        # TODO: 4,5 -> wheel  5+ -> extra buttons 
-
     def update(self, events: list[pygame.Event]) -> None:
         """
         Process the widget logic.
@@ -158,39 +158,60 @@ class Widget(ConstrainedBoxModel):
         local_mouse = global_mouse - self.position
 
         if self.absolute_frect.collidepoint(global_mouse.x, global_mouse.y):
-            if not self._hovered: self.mouse_enter_event(local_mouse, global_mouse)
+            if not self._hovered:
+                self.mouse_enter_event(local_mouse, global_mouse)
+
             self._hovered = True
+            
+            if self.repaint_on_mouse_interaction:
+                self.repaint()
         else:
-            if self._hovered: self.mouse_leave_event(local_mouse, global_mouse)
+            if self._hovered:
+                self.mouse_leave_event(local_mouse, global_mouse)
+
             self._hovered = False
+
+            if self.repaint_on_mouse_interaction:
+                self.repaint()
 
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    if (perf_counter() - self._last_pressed) * 1000 < self.double_click_duration:
+                    elapsed = (perf_counter() - self._last_pressed) * 1000.0
+                    if elapsed < self.double_click_duration:
                         self._last_pressed = 0
                         self.mouse_double_click_event(local_mouse, global_mouse)
 
                     self._last_pressed = perf_counter()
                     
                 if self._hovered:
-                    self._pressed = True
-                    button = self.__get_mouse_button(event.button)
+                    self._pressed[event.button - 1] = True
+                    button = MouseButton.from_pygame_event(event)
                     self.mouse_press_event(button, local_mouse, global_mouse)
+                    self.focus()
+
+                    if self.repaint_on_mouse_interaction:
+                        self.repaint()
 
                 else:
                     self.unfocus()
 
             elif event.type == pygame.MOUSEBUTTONUP:
-                if self._pressed:
-                    self._pressed = False
-                    button = self.__get_mouse_button(event.button)
+                if self._pressed[event.button - 1]:
+                    self._pressed[event.button - 1] = False
+                    button = MouseButton.from_pygame_event(event)
                     self.mouse_release_event(button, local_mouse, global_mouse)
-                    self.focus()
+
+                    if self.repaint_on_mouse_interaction:
+                        self.repaint()
 
             elif event.type == pygame.MOUSEWHEEL:
                 if self._hovered:
-                    self.mouse_wheel_event(pygame.Vector2(event.precise_x, event.precise_y))
+                    precise_scroll = pygame.Vector2(event.precise_x, event.precise_y)
+                    self.mouse_wheel_event(precise_scroll)
+
+                    if self.repaint_on_mouse_interaction:
+                        self.repaint()
 
     def render(self, surface: pygame.Surface) -> None:
         """
@@ -206,6 +227,10 @@ class Widget(ConstrainedBoxModel):
         """
 
         if self.surface is not None:
+            if self.__need_repaint:
+                self.paint_event()
+                self.__need_repaint = False
+
             surface.blit(self.surface, self.position)
 
     def update_surface(self, repaint: bool = True) -> None:
@@ -217,17 +242,24 @@ class Widget(ConstrainedBoxModel):
         Parameters
         ----------
         repaint
-            Repaint after updating the surface dimensions.
+            Request a repaint after updating the surface.
         """
 
         if not self.current_size.is_valid():
             self.surface = None
             return
         
-        self.surface = pygame.Surface(self.current_size.to_tuple(), pygame.SRCALPHA).convert_alpha()
+        self.surface = pygame.Surface(
+            self.current_size.to_tuple(),
+            pygame.SRCALPHA
+        ).convert_alpha()
         
         if repaint:
-            self.paint_event()
+            self.repaint()
+
+    def repaint(self) -> None:
+        """ Request a repaint. """
+        self.__need_repaint = True
     
     def focus(self) -> None:
         """ Get the widget in focus. """
@@ -235,7 +267,8 @@ class Widget(ConstrainedBoxModel):
         if not self.on_focus:
             self.on_focus = True
             self.focus_event()
-        else: self.on_focus = True
+        else:
+            self.on_focus = True
 
     def unfocus(self) -> None:
         """ Get the widget out of focus. """
@@ -243,7 +276,8 @@ class Widget(ConstrainedBoxModel):
         if self.on_focus:
             self.on_focus = False
             self.unfocus_event()
-        else: self.on_focus = False
+        else:
+            self.on_focus = False
 
     def paint_event(self) -> None:
         """

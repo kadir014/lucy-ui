@@ -14,11 +14,17 @@ import pygame
 
 from lucyui.core.types import SizeLike
 from lucyui.widgets.abstractbutton import AbstractButton
+from lucyui.rendering import TextRenderer
 
 
 class TextButton(AbstractButton):
     """
     Basic push button widget with text.
+
+    Attributes
+    ----------
+    renderer
+        Text renderer this widget uses.
 
     Hooks
     -----
@@ -48,11 +54,15 @@ class TextButton(AbstractButton):
         antialiasing
             Whether to use anti-aliasing while rendering text.
         """
-        self.font = font
         self.__text = text
-        self.antialiasing = antialiasing
+
+        self.__cached_text_surf = None
+
+        self.renderer = TextRenderer(font, antialiasing)
 
         super().__init__(preferred_size=preferred_size)
+
+        self.repaint_on_mouse_interaction = True
 
     @property
     def text(self) -> str:
@@ -63,19 +73,34 @@ class TextButton(AbstractButton):
     
     @text.setter
     def text(self, value: str) -> None:
+        # New text is different, request rerender
+        if self.__text != value:
+            self.__cached_text_surf = None
+
         self.__text = value
-        self.paint_event()
+        self.repaint()
 
     def paint_event(self) -> None:
         self.surface.fill((0, 0, 0, 0))
 
-        pygame.draw.rect(self.surface, (0, 0, 0), (0, 0, self.current_size.width, self.current_size.height), 1)
-        textsurf = self.font.render(self.text, self.antialiasing, (0, 0, 0))
-        surfrect = self.surface.get_rect()
-        textrect = textsurf.get_rect()
-        self.surface.blit(
-            textsurf, (
-                surfrect.centerx - textrect.centerx,
-                surfrect.centery - textrect.centery
-            )
+        border_color = (132, 134, 140)
+        if self._hovered:
+            border_color = (159, 176, 227)
+        if any(self._pressed):
+            border_color = (97, 129, 255)
+
+        pygame.draw.rect(
+            self.surface,
+            border_color,
+            (0, 0, self.current_size.width, self.current_size.height),
+            2
         )
+
+        if self.__cached_text_surf is None:
+            self.__cached_text_surf = self.renderer.render(self.text, self.current_size)
+
+        text_surf = self.__cached_text_surf
+        surf_rect = self.surface.get_rect()
+        text_rect = text_surf.get_rect(center=surf_rect.center)
+
+        self.surface.blit(text_surf, text_rect)

@@ -108,17 +108,17 @@ class Stack(Layout):
         self.realign()
 
     def update(self, events: list[pygame.Event]) -> None:
-        children_layouts = sum([1 for child in self.children if isinstance(child, Layout)])
+        children_layouts = sum([1 for child in self._children if isinstance(child, Layout)])
 
         if children_layouts > 0:
             main_axis = self.direction.value
             cross_axis = 1 - main_axis
 
-            for child in self.children:
+            for child in self._children:
                 if isinstance(child, Stack):
                     # If the child stack has the same direction, its smallest fit is sum of its children
                     # If not, it's smallest fit is the biggest child
-                    smallest_fit = [c.preferred_size[main_axis] for c in child.children]
+                    smallest_fit = [c.preferred_size[main_axis] for c in child._children]
 
                     if self.__direction == child.direction:
                         layout_preferred_size = sum(smallest_fit)
@@ -141,34 +141,34 @@ class Stack(Layout):
         main_axis = self.direction.value
         cross_axis = 1 - main_axis
 
-        for child in self.children:
+        for child in self._children:
             child.current_size = child.preferred_size.copy()
 
-        self.iterations = solve_size_constraints(self.children, self.current_size[main_axis], main_axis)
+        self.iterations = solve_size_constraints(self._children, self.current_size[main_axis], main_axis)
 
         if self.__main_alignment == LayoutAlignment.END:
             y = 0
-            for child in self.children[::-1]:
+            for child in self._children[::-1]:
                 y += child.current_size[main_axis]
                 child.relative_position[main_axis] = self.current_size[main_axis] - y
 
         elif self.__main_alignment == LayoutAlignment.START:
             y = 0
-            for child in self.children:
+            for child in self._children:
                 child.relative_position[main_axis] = y
                 y += child.current_size[main_axis]
 
         elif self.__main_alignment == LayoutAlignment.CENTER:
             total_space = 0
-            for child in self.children:
+            for child in self._children:
                 total_space += child.current_size[main_axis]
 
             remaining = self.current_size[main_axis] - total_space
 
             if self.__distribution == LayoutDistribution.SPACE_BETWEEN:
-                n = len(self.children) - 1
+                n = len(self._children) - 1
             elif self.__distribution == LayoutDistribution.SPACE_AROUND:
-                n = len(self.children) + 1
+                n = len(self._children) + 1
 
             gap = remaining / n
 
@@ -180,13 +180,13 @@ class Stack(Layout):
             elif self.__distribution == LayoutDistribution.SPACE_AROUND:
                 y = gap
 
-            for child in self.children:
+            for child in self._children:
                 child.relative_position[main_axis] = y
                 y += child.current_size[main_axis] + gap
         
         # Constraint solving on the main axis is done.
         # Now adjust the alignment on the cross axis.
-        for child in self.children:
+        for child in self._children:
             if child.size_behavior[cross_axis] == SizeBehavior.GROW:
                 if child.maximum_size[cross_axis] == 0:
                     child.current_size[cross_axis] = self.current_size[cross_axis]
