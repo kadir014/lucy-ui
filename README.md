@@ -1,6 +1,8 @@
 # lucy-ui
-<img src="https://img.shields.io/badge/license-MIT-blue.svg">
-<img src="https://img.shields.io/badge/version-0.0.4-yellow">
+<p>
+  <img src="https://img.shields.io/badge/license-MIT-blue.svg">
+  <img src="https://img.shields.io/badge/version-0.0.4-yellow">
+</p>
 
 A modern, easy-to-use user interface and layout management library for Pygame(-CE).
 
