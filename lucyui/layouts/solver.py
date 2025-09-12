@@ -28,7 +28,7 @@ def solve_size_constraints(
     Parameters
     ----------
     children
-        List of children who implement constrained box model.
+        List of visible children who implement constrained box model.
     size:
         Size of the main axis.
     axis

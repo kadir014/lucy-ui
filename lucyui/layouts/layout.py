@@ -55,6 +55,8 @@ class Layout(ConstrainedBoxModel):
         self.__horizontal_behavior = SizeBehavior.FLEX
         self.__vertical_behavior = SizeBehavior.FLEX
 
+        self.__is_visible = True
+
         self.parent_layout: "Layout" = None
 
         self._children: list[Widget | Layout] = []
@@ -127,6 +129,15 @@ class Layout(ConstrainedBoxModel):
         if self.parent_layout is not None:
             self.parent_layout.realign()
 
+    @property
+    def is_visible(self) -> float:
+        """
+        Whether the layout is visible or not.
+        
+        Hidden layouts are not processed or rendered.
+        """
+        return self.__is_visible
+
     def update(self, events: list[pygame.Event]):
         """
         Process the layout logic.
@@ -138,6 +149,9 @@ class Layout(ConstrainedBoxModel):
         events
             Event list returned by the `pygame.event.get()`
         """
+
+        if not self.__is_visible:
+            return
 
         # Realign children layouts bottom-up.
         for child in self._children:
@@ -166,6 +180,9 @@ class Layout(ConstrainedBoxModel):
             Surface to render the widget onto.
         """
 
+        if not self.__is_visible:
+            return
+
         for child in self._children:
             child.render(surface)
 
@@ -180,6 +197,22 @@ class Layout(ConstrainedBoxModel):
         This method can be implemented in a subclass to
         create a custom layout solver.
         """
+
+    def show(self) -> None:
+        """ Make the layout visible. """
+
+        self.__is_visible = True
+
+        if self.parent_layout is not None:
+            self.parent_layout.realign()
+
+    def hide(self) -> None:
+        """ Make the layout hidden. """
+
+        self.__is_visible = False
+
+        if self.parent_layout is not None:
+            self.parent_layout.realign()
 
     def get_absolute_position(self, position: pygame.Vector2) -> pygame.Vector2:
         """ Get absolute position in screen space. """

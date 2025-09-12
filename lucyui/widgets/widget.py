@@ -63,6 +63,8 @@ class Widget(ConstrainedBoxModel):
 
         self.__need_repaint = False
 
+        self.__is_visible = True
+
         self.__horizontal_behavior = SizeBehavior.FIXED
         self.__vertical_behavior = SizeBehavior.FIXED
 
@@ -72,9 +74,9 @@ class Widget(ConstrainedBoxModel):
         self._last_pressed = 0.0
 
         # Public attributes
-        self.double_click_duration = 500.0
         self.on_focus = False
         self.parent_layout: "Layout" = None
+        self.double_click_duration = 500.0
         self.repaint_on_mouse_interaction = False
 
         self.update_surface()
@@ -141,6 +143,15 @@ class Widget(ConstrainedBoxModel):
         if self.parent_layout is not None:
             self.parent_layout.realign()
 
+    @property
+    def is_visible(self) -> float:
+        """
+        Whether the widget is visible or not.
+        
+        Hidden widgets are not processed or rendered.
+        """
+        return self.__is_visible
+
     def update(self, events: list[pygame.Event]) -> None:
         """
         Process the widget logic.
@@ -153,6 +164,9 @@ class Widget(ConstrainedBoxModel):
         events
             Event list returned by `pygame.event.get()`
         """
+
+        if not self.__is_visible:
+            return
 
         global_mouse = pygame.Vector2(*pygame.mouse.get_pos())
         local_mouse = global_mouse - self.position
@@ -226,6 +240,9 @@ class Widget(ConstrainedBoxModel):
             Surface to render the widget onto.
         """
 
+        if not self.__is_visible:
+            return
+
         if self.surface is not None:
             if self.__need_repaint:
                 self.paint_event()
@@ -278,6 +295,22 @@ class Widget(ConstrainedBoxModel):
             self.unfocus_event()
         else:
             self.on_focus = False
+
+    def show(self) -> None:
+        """ Make the widget visible. """
+
+        self.__is_visible = True
+
+        if self.parent_layout is not None:
+            self.parent_layout.realign()
+
+    def hide(self) -> None:
+        """ Make the widget hidden. """
+
+        self.__is_visible = False
+
+        if self.parent_layout is not None:
+            self.parent_layout.realign()
 
     def paint_event(self) -> None:
         """
