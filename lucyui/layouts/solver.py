@@ -8,6 +8,7 @@
 
 """
 
+from lucyui.layouts import Layout
 from lucyui.widgets import Widget
 from lucyui.core import SizeBehavior
 
@@ -17,14 +18,25 @@ EPSILON = 0.001
 
 
 def solve_size_constraints(
-        widgets: list[Widget],
+        children: list[Widget | Layout],
         size: float,
         axis: int
         ) -> int:
-    """ Solve size constraints on one axis. """
+    """
+    Solve size constraints on one axis.
+    
+    Parameters
+    ----------
+    children
+        List of children who implement constrained box model.
+    size:
+        Size of the main axis.
+    axis
+        Axis to solve the constraints on.
+    """
 
     total_preferred = 0
-    for widget in widgets:
+    for widget in children:
         total_preferred += widget.preferred_size[axis]
 
     diff = size - total_preferred
@@ -39,7 +51,7 @@ def solve_size_constraints(
         behavior = SizeBehavior.GROW
         direction = +1
 
-        for widget in widgets:
+        for widget in children:
             if widget.size_behavior[axis] == SizeBehavior.GROW or widget.size_behavior[axis] == SizeBehavior.FLEX:
                 eligible.append(widget)
 
@@ -48,7 +60,7 @@ def solve_size_constraints(
         behavior = SizeBehavior.SHRINK
         direction = -1
 
-        for widget in widgets:
+        for widget in children:
             if widget.size_behavior[axis] == SizeBehavior.SHRINK or widget.size_behavior[axis] == SizeBehavior.FLEX:
                 eligible.append(widget)
 
