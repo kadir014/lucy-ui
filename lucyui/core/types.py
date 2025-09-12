@@ -7,6 +7,7 @@
     https://github.com/kadir014/lucy-ui
 
 """
+
 from collections.abc import Sequence
 
 import pygame

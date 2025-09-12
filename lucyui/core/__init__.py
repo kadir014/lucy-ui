@@ -16,7 +16,8 @@ from lucyui.core.models import (
     LayoutAlignment,
     LayoutDistribution,
     StackDirection,
-    TextWrapMode
+    TextWrapMode,
+    TweenRepeatMode
 )
 
 
