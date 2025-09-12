@@ -15,7 +15,7 @@
 import pygame
 
 from lucyui.core import __version__
-from lucyui.core import Size, StackDirection, SizeBehavior, LayoutDistribution
+from lucyui.core import Size, SizeBehavior, StackDirection
 from lucyui.widgets import TextInput, TextButton, Label
 from lucyui.layouts import Stack
 
